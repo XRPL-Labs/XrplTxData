@@ -1,0 +1,53 @@
+{
+  "name": "txdata",
+  "version": "0.0.1",
+  "description": "Fetch XRPL transaction data",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "prepare": "npm run clean && npm run lint && npm run test && npm run build",
+    "clean": "rm -rf dist",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "dev": "clear; npm run build; DEBUG=txdata* nodemon dist/samples/dev.js",
+    "test": "jest --ci --verbose",
+    "lint": "tslint -p ./"
+  },
+  "files": [
+    "src/**/*.js",
+    "src/**/*.d.ts"
+  ],
+  "dependencies": {
+    "debug": "^4.1.1",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.5",
+    "@types/jest": "^26.0.12",
+    "@types/node": "^12.12.55",
+    "@types/ws": "^7.2.6",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.3.0",
+    "tslint": "^5.20.1",
+    "tslint-eslint-rules": "^5.4.0",
+    "typescript": "^3.9.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:XRPL-Labs/XrplTxData.git"
+  },
+  "bugs": {
+    "url": "https://github.com/XRPL-Labs/XrplTxData/issues"
+  },
+  "homepage": "https://github.com/XRPL-Labs/XrplTxData/#readme",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "keywords": [
+    "xrp",
+    "xrpl",
+    "xumm",
+    "transaction",
+    "data",
+    "tx"
+  ]
+}
