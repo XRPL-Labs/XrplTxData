@@ -12,16 +12,195 @@ Not only the requested transaction will be returned (or the `not found` response
 
 ### Syntax
 
-... Still writing ;)
+Basic usage: construct (using defaults), fetch one transaction and close WebSocket connection(s) after getting a result.
 
-### Response
+```javascript
+const txd = new TxData()
 
-... Still writing ;)
+const main = async () => {
+  // getOne(): fetch one tx and close connection(s) after a reply
+  const tx = await txd.getOne('B34EFCDA6A9D6B19670E19ECD3CFD638177EED92B863756DD96CFD197B940515')
+  console.log(tx)
+}
 
-### Use
+main()
+```
 
-... Still writing ;)
+Fetching multiple transactionos and close the WebSocket connection(s) programmatically:
 
-### Browserify
+```javascript
+const txd = new TxData()
 
-... Still writing ;)
+const main = async () => {
+  // get(): fetch a tx, keep connetion(s) alive
+  const tx1 = await txd.get('B34EFCDA6A9D6B19670E19ECD3CFD638177EED92B863756DD96CFD197B940515')
+  console.log(tx1)
+
+  const tx2 = await txd.get('A17E4DEAD62BF705D9B73B4EAD2832F1C55C6C5A0067327A45E497FD8D31C0E3')
+  console.log(tx2)
+
+  // Done, not interested in more tx data, close connection(s)
+  txd.end()
+}
+
+main()
+```
+
+#### Advanced options
+
+By default, these full history nodes will be used (in order):
+
+1. `wss://xrpl.ws` ([more info](https://xrpl.ws))
+2. `wss://xrpl.link` (fallback endpoint for `wss://xrpl.ws`)
+3. `wss://s2.ripple.com`
+
+The default timeout configuration will:
+
+- Try to connect, query & get a response (per tx) within 1250ms (1.25 seconds) before trying the next node
+- Try to connect, query & get a response (per tx) within 10 seconds
+
+The first node to anwer the request will result in a resolved query.
+
+To overrule the nodes (full history required), provide an array with websocket endpoints to the constructor in the order you'd like them to be used:
+
+```javascript
+const txd = new TxData([
+  'wss://my-fh-xprl-node.local',
+  'wss://s2.ripple.com',
+  'wss://xrpl.ws'
+])
+```
+
+To overrule the default 1250 / 10000 ms timeouts, provide an object to the constructor (second param.):
+
+```javascript
+// Empty array (endpoints) will result in using the default server list
+const txd = new TxData([], {
+  // Try the next server after 0.75 sec.
+  EndpointTimeoutMs: 750,
+  // Throw an error if none of the servers connected  & replied in 5 seconds
+  OverallTimeoutMs: 5000
+})
+```
+
+### Use in the browser
+
+You can clone this repository and run:
+
+- `npm run install` to install dependencies
+- `npm run build` to build the source code
+- `npm run browserify` to browserify this lib.
+
+Now the `dist/browser.js` file will exist, for you to use in a browser.
+
+Alternatively you can get a prebuilt version from [Github](https://raw.githubusercontent.com/XRPL-Labs/XrplTxData/main/dist/browser.js).
+
+### Response (format)
+
+The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four properties:
+
+- `host` (string): the endpoint (connetion url) of the first node replying to the request 
+- `resolvedBy` (string): `"generator"` if the host replied within the `EndpointTimeoutMs` timeout, `"emitter"` if the first reply came in after the `EndpointTimeoutMs` timeout, but before the next host replied 
+- **`result`** (object): containing the error or transaction response from the XRPL node
+- **`balanceChanges`** (object): containing the parsed balance changes for all accounts affected by this transaction
+
+#### Sample: response for a non existing transaction:
+
+```json
+{
+  "result": {
+    "error": "txnNotFound",
+    "error_code": 29,
+    "error_message": "Transaction not found.",
+    "request": {...},
+    "status": "error",
+    "type": "response"
+  },
+  "resolvedBy": "generator",
+  "host": "wss://s2.ripple.com/",
+  "balanceChanges": {}
+}
+```
+
+#### Sample: response for an existing transaction (simple payment):
+```json
+{
+  "result": {
+    "Account": "r4bA4uZgXadPMzURqGLCvCmD48FmXJWHCG",
+    "Amount": "1000000",
+    "Destination": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",
+    "Fee": "12",
+    "TransactionType": "Payment",
+    "date": 655453821,
+    "meta": {...},
+    "validated": true,
+    ...
+  },
+  "resolvedBy": "emitter",
+  "host": "wss://xrpl.ws/",
+  "balanceChanges": {
+    "r4bA4uZgXadPMzURqGLCvCmD48FmXJWHCG": [
+      {
+        "counterparty": "",
+        "currency": "XRP",
+        "value": "-1.000012"
+      }
+    ],
+    "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT": [
+      {
+        "counterparty": "",
+        "currency": "XRP",
+        "value": "1"
+      }
+    ]
+  }
+}
+```
+
+#### Sample: response for an existing transaction (Decentralized Exchange trade):
+
+```json
+{
+  "result": {
+    "Account": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",
+    "Fee": "15",
+    "Flags": 2148007936,
+    "TakerGets": "15000000000",
+    "TakerPays": {
+      "currency": "EUR",
+      "issuer": "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq",
+      "value": "3999"
+    },
+    "TransactionType": "OfferCreate",
+    "ledger_index": 46223027,
+    "meta": {...},
+    "validated": true,
+    ...
+  },
+  "resolvedBy": "generator",
+  "host": "wss://s2.ripple.com/",
+  "balanceChanges": {
+    "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq": [
+      {
+        "counterparty": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",
+        "currency": "EUR",
+        "value": "-1571.649031281391"
+      },
+      ...
+    ],
+    "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT": [
+      {
+        "counterparty": "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq",
+        "currency": "EUR",
+        "value": "1571.649031281391"
+      },
+      {
+        "counterparty": "",
+        "currency": "XRP",
+        "value": "-5749.538284"
+      }
+    ],
+    ...
+  }
+}
+```
