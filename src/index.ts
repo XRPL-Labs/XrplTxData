@@ -77,7 +77,7 @@ export class TxData {
   ]
   private EventBus: EventEmitter
 
-  private ConnectionAndQueryTimeoutMs: number = 1000
+  private ConnectionAndQueryTimeoutMs: number = 1250
   private LookupTimeoutMs: number = 10000
 
   constructor (endpoints?: Array<string>, options?: TxDataOptions) {
