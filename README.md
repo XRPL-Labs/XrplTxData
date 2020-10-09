@@ -95,7 +95,7 @@ You can clone this repository and run:
 
 Now the `dist/browser.js` file will exist, for you to use in a browser.
 
-Alternatively you can get a [prebuilt](https://raw.githubusercontent.com/XRPL-Labs/XrplTxData/main/dist/browser.js) / [prebuilt & minified](https://raw.githubusercontent.com/XRPL-Labs/XrplTxData/main/dist/browser.min.js) version from Github.
+Alternatively you can get a [prebuilt](https://cdn.jsdelivr.net/gh/XRPL-Labs/XrplTxData@main/dist/browser.js) / [prebuilt & minified](https://cdn.jsdelivr.net/gh/XRPL-Labs/XrplTxData@main/dist/browser.min.js) version from Github.
 
 ### Response (format)
 
