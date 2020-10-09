@@ -10,7 +10,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "clear; npm run build; DEBUG=txdata* nodemon dist/samples/dev.js",
-    "browserify": "browserify -r ./dist/src/index.js:TxData -o dist/browser.js",
+    "browserify": "browserify -r ./dist/src/index.js:TxData -o dist/browser.js && npm run minify",
+    "minify": "cat dist/browser.js | terser --compress --mangle > dist/browser.min.js",
     "dev-sample": "clear; npm run build && DEBUG=txdata:sample* nodemon dist/samples/dev.js",
     "test": "DEBUG=txdata:tests* jest --ci --verbose",
     "lint": "tslint -p ./"
@@ -34,6 +35,7 @@
     "browserify": "^16.5.2",
     "jest": "^26.4.2",
     "mock-socket": "^9.0.3",
+    "terser": "^5.3.4",
     "ts-jest": "^26.3.0",
     "tslint": "^5.20.1",
     "tslint-eslint-rules": "^5.4.0",
