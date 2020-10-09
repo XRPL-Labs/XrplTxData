@@ -10,6 +10,8 @@ This package can be used in Node/Typescript projects (`xrpl-txdata`) or used (br
 
 Not only the requested transaction will be returned (or the `not found` response if the transaction can't be found): the **parsed balances** (transaction outcome) will be calculated (form the transaction metadata) and returned as well.
 
+A simple ES6 JS example can be found in [`samples/dev.js`](https://github.com/XRPL-Labs/XrplTxData/blob/main/samples/dev.js).
+
 ### Syntax
 
 Basic usage: construct (using defaults), fetch one transaction and close WebSocket connection(s) after getting a result.
