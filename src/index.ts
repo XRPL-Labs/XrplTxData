@@ -10,10 +10,6 @@ const logConnErr = log.extend('connect:error')
 const logResolve = log.extend('resolve')
 const logInvalid = log.extend('invalid')
 
-// TODO: Readme
-// TODO:   ^^ add to XUMM backend method
-// TODO:       ^^ add to XUMM API
-
 export type AnyJson = Record<string, unknown>
 
 export interface TxResult extends AnyJson {
