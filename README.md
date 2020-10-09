@@ -4,7 +4,7 @@
 
 This lib. allows you to fetch XRP ledger transaction outcome from a number of (full history) XRP ledger nodes. This lib. will automatically setup connections when fetching from a selected node takes too long. The first (sane) reply will be returned.
 
-This lib. will get you the **fastest response possible** while setting up a **minimal amount of websocket connetions** to full history XRPL nodes.
+This lib. will get you the **fastest response possible** while setting up the **lowest amount of WebSocket connections** to full history XRPL nodes possible.
 
 This package can be used in Node/Typescript projects (`xrpl-txdata`) or used (browserified) in the browser.
 
