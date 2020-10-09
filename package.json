@@ -1,7 +1,7 @@
 {
-  "name": "txdata",
+  "name": "xrpl-txdata",
   "version": "0.0.1",
-  "description": "Fetch XRPL transaction data",
+  "description": "Fetch XRPL transaction by hash (+ meta & balances), awaits if required",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
@@ -10,7 +10,9 @@
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "clear; npm run build; DEBUG=txdata* nodemon dist/samples/dev.js",
-    "test": "jest --ci --verbose",
+    "browserify": "clear; npm run prepare && browserify -r ./dist/src/index.js:TxData -o dist/browser.js",
+    "dev-sample": "clear; npm run build && DEBUG=txdata:sample* nodemon dist/samples/dev.js",
+    "test": "DEBUG=txdata:tests* jest --ci --verbose",
     "lint": "tslint -p ./"
   },
   "files": [
@@ -18,15 +20,20 @@
     "src/**/*.d.ts"
   ],
   "dependencies": {
+    "@types/lodash": "^4.14.161",
+    "@types/websocket": "^1.0.1",
+    "bignumber.js": "^9.0.1",
     "debug": "^4.1.1",
-    "ws": "^7.3.1"
+    "lodash": "^4.17.20",
+    "websocket": "^1.0.32"
   },
   "devDependencies": {
     "@types/debug": "^4.1.5",
     "@types/jest": "^26.0.12",
     "@types/node": "^12.12.55",
-    "@types/ws": "^7.2.6",
+    "browserify": "^16.5.2",
     "jest": "^26.4.2",
+    "mock-socket": "^9.0.3",
     "ts-jest": "^26.3.0",
     "tslint": "^5.20.1",
     "tslint-eslint-rules": "^5.4.0",
