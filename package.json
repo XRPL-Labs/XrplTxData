@@ -5,12 +5,12 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "prepare": "npm run clean && npm run lint && npm run test && npm run build",
+    "prepare": "npm run clean && npm run lint && npm run test && npm run build && npm run browserify",
     "clean": "rm -rf dist",
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "clear; npm run build; DEBUG=txdata* nodemon dist/samples/dev.js",
-    "browserify": "clear; npm run prepare && browserify -r ./dist/src/index.js:TxData -o dist/browser.js",
+    "browserify": "browserify -r ./dist/src/index.js:TxData -o dist/browser.js",
     "dev-sample": "clear; npm run build && DEBUG=txdata:sample* nodemon dist/samples/dev.js",
     "test": "DEBUG=txdata:tests* jest --ci --verbose",
     "lint": "tslint -p ./"
