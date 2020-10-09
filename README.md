@@ -1,4 +1,4 @@
-# XRPL Transaction Data fetcher [![npm version](https://badge.fury.io/js/xrpl-txdata.svg)](https://www.npmjs.com/xrpl-txdata) [![GitHub Actions NodeJS status](https://github.com/XRPL-Labs/XrplTxData/workflows/NodeJS/badge.svg?branch=master)](https://github.com/XRPL-Labs/XrplTxData/actions)
+# XRPL Transaction Data fetcher [![npm version](https://badge.fury.io/js/xrpl-txdata.svg)](https://www.npmjs.com/xrpl-txdata) [![GitHub Actions NodeJS status](https://github.com/XRPL-Labs/XrplTxData/workflows/NodeJS/badge.svg?branch=main)](https://github.com/XRPL-Labs/XrplTxData/actions)
 
 ### `xrpl-txdata`: Fetch XRPL transaction data (auto failover)
 
