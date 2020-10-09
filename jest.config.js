@@ -7,6 +7,6 @@ module.exports = {
   testRegex: "(.*|(\\.|/)(test|spec))\\.ts?$",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   testPathIgnorePatterns: [
-    "fixtures"
+    "fixtures", "components"
   ]
-};
+}

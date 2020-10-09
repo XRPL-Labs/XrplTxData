@@ -1,0 +1,68 @@
+<html>
+  <head>
+    <title>TxData in the browser</title>
+  </head>
+  <body>
+    <h1>XRPL TxData</h1>
+    <ul>
+      <li>Starting...</li>
+    </ul>
+
+    <script src="../dist/browser.js"></script>
+    <script>
+      const log = message => {
+        const li = document.createElement('li')
+        // li.appendChild(document.createTextNode(message))
+        li.innerHTML = message
+        document.querySelector('ul').appendChild(li)
+      }
+
+      const {TxData} = require('TxData')
+
+      const txd = new TxData([
+        'wss://s2.ripple.com',
+        'wss://xrpl.ws',
+        'wss://xrpl.link'
+      ], {
+        OverallTimeoutMs: 3000,
+        EndpointTimeoutMs: 500
+      })
+
+      log('Constructed TxData')
+
+      const main = async () => {
+        const hash1 = 'A17E4DEAD62BF705D9B73B4EAD2832F1C55C6C5A0067327A45E497FD8D31C0E3'
+        log('Fetching ' + hash1)
+        const tx1 = await txd.get(hash1)
+        console.log(tx1)
+        log(
+          'Got results for ' + hash1.slice(0, 10) + '...' +
+          '<br />&nbsp;&nbsp;&nbsp;&nbsp;<code><b>' + tx1.resolvedBy + '</b></code> response by <code><b>' + tx1.host + '</b></code>' +
+          '<br /><pre>' + JSON.stringify(tx1, null, 2) + '</pre>')
+
+        const hash2 = 'B34EFCDA6A9D6B19670E19ECD3CFD638177EED92B863756DD96CFD197B940515'
+        log('Fetching ' + hash2)
+        const tx2 = await txd.get(hash2)
+        console.log(tx2)
+        log(
+          'Got results for ' + hash2.slice(0, 10) + '...' +
+          '<br />&nbsp;&nbsp;&nbsp;&nbsp;<code><b>' + tx2.resolvedBy + '</b></code> response by <code><b>' + tx2.host + '</b></code>' +
+          '<br /><pre>' + JSON.stringify(tx2, null, 2) + '</pre>')
+
+        const hash3 = '0260F06C0590C470E7E7FA9DE3D9E85B1825E19196D8893DD84431F6E9491739'
+        log('Fetching ' + hash3)
+        const tx3 = await txd.get(hash3)
+        console.log(tx3)
+        log(
+          'Got results for ' + hash3.slice(0, 10) + '...' +
+          '<br />&nbsp;&nbsp;&nbsp;&nbsp;<code><b>' + tx3.resolvedBy + '</b></code> response by <code><b>' + tx3.host + '</b></code>' +
+          '<br /><pre>' + JSON.stringify(tx3, null, 2) + '</pre>')
+
+        txd.end()
+        log('Ended (WebSocket connetions closed)')
+      }
+
+      main()
+    </script>
+  </body>
+</html>
