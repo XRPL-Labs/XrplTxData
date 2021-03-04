@@ -1,4 +1,4 @@
-# XRPL Transaction Data fetcher [![npm version](https://badge.fury.io/js/xrpl-txdata.svg)](https://www.npmjs.com/xrpl-txdata) [![GitHub Actions NodeJS status](https://github.com/XRPL-Labs/XrplTxData/workflows/NodeJS/badge.svg?branch=main)](https://github.com/XRPL-Labs/XrplTxData/actions)
+# XRPL Transaction Data fetcher [![npm version](https://badge.fury.io/js/xrpl-txdata.svg)](https://www.npmjs.com/xrpl-txdata) [![GitHub Actions NodeJS status](https://github.com/XRPL-Labs/XrplTxData/workflows/NodeJS/badge.svg?branch=main)](https://github.com/XRPL-Labs/XrplTxData/actions) [![CDNJS Browserified](https://img.shields.io/badge/cdnjs-browserified-blue)](https://cdn.jsdelivr.net/gh/XRPL-Labs/XrplTxData@main/dist/browser.js) [![CDNJS Browserified Minified](https://img.shields.io/badge/cdnjs-minified-orange)](https://cdn.jsdelivr.net/gh/XRPL-Labs/XrplTxData@main/dist/browser.min.js)
 
 ### `xrpl-txdata`: Fetch XRPL transaction data (auto failover)
 
@@ -95,7 +95,7 @@ You can clone this repository and run:
 
 Now the `dist/browser.js` file will exist, for you to use in a browser.
 
-Alternatively you can get a [prebuilt](https://raw.githubusercontent.com/XRPL-Labs/XrplTxData/main/dist/browser.js) / [prebuilt & minified](https://raw.githubusercontent.com/XRPL-Labs/XrplTxData/main/dist/browser.min.js) version from Github.
+Alternatively you can get a [prebuilt](https://cdn.jsdelivr.net/gh/XRPL-Labs/XrplTxData@main/dist/browser.js) / [prebuilt & minified](https://cdn.jsdelivr.net/gh/XRPL-Labs/XrplTxData@main/dist/browser.min.js) version from Github.
 
 ### Response (format)
 
