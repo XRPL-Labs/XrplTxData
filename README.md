@@ -52,8 +52,8 @@ main()
 
 By default, these full history nodes will be used (in order):
 
-1. `wss://xrpl.ws` ([more info](https://xrpl.ws))
-2. `wss://xrpl.link` (fallback endpoint for `wss://xrpl.ws`)
+1. `wss://xrplcluster.com` ([more info](https://xrplcluster.com))
+2. `wss://xrpl.link` (fallback endpoint for `wss://xrplcluster.com`)
 3. `wss://s2.ripple.com`
 
 The default timeout configuration will:
@@ -69,7 +69,7 @@ To overrule the nodes (full history required), provide an array with websocket e
 const txd = new TxData([
   'wss://my-fh-xprl-node.local',
   'wss://s2.ripple.com',
-  'wss://xrpl.ws'
+  'wss://xrplcluster.com'
 ])
 ```
 
@@ -139,7 +139,7 @@ The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four 
     ...
   },
   "resolvedBy": "emitter",
-  "host": "wss://xrpl.ws/",
+  "host": "wss://xrplcluster.com/",
   "balanceChanges": {
     "r4bA4uZgXadPMzURqGLCvCmD48FmXJWHCG": [
       {

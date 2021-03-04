@@ -21871,7 +21871,7 @@ class TxData {
         this.ReadyConnections = [];
         this.CommandId = 0;
         this.Endpoints = [
-            'wss://xrpl.ws',
+            'wss://xrplcluster.com',
             'wss://xrpl.link',
             'wss://s2.ripple.com'
         ];
