@@ -67,7 +67,7 @@ export class TxData {
   private ReadyConnections: Promise<WebSocket>[] = []
   private CommandId: number = 0
   private Endpoints: Array<string> = [
-    'wss://xrpl.ws',
+    'wss://xrplcluster.com',
     'wss://xrpl.link',
     'wss://s2.ripple.com'
   ]
