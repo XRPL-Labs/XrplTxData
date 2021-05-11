@@ -188,6 +188,7 @@ export class TxData {
 
       const onTx = (r: EmittedTxResult) => {
         if (!meta.resolved && r.txHash === TxHash) {
+          this.EventBus.off('result', onTx)
           ResolveFormatted(r.result, 'emitter', r.host)
         }
       }
@@ -403,6 +404,7 @@ export class TxData {
         const onTx = (r: Tx | TxNotFound) => {
           if (typeof r.id !== 'undefined') {
             if (r.id === id) {
+              this.EventBus.off('xrpljson', onTx)
               return resolve(r)
             }
           }
