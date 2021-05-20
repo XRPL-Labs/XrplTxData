@@ -10,6 +10,8 @@ const logConnErr = log.extend('connect:error')
 const logResolve = log.extend('resolve')
 const logInvalid = log.extend('invalid')
 
+export {parseBalanceChanges} from './ext-dependencies/balanceParser'
+
 export type AnyJson = Record<string, unknown>
 
 export interface TxResult extends AnyJson {
