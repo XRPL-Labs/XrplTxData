@@ -21864,6 +21864,8 @@ const logConnect = log.extend('connect');
 const logConnErr = log.extend('connect:error');
 const logResolve = log.extend('resolve');
 const logInvalid = log.extend('invalid');
+var balanceParser_2 = require("./ext-dependencies/balanceParser");
+Object.defineProperty(exports, "parseBalanceChanges", { enumerable: true, get: function () { return balanceParser_2.parseBalanceChanges; } });
 class TxData {
     constructor(endpoints, options) {
         this.Ended = false;
