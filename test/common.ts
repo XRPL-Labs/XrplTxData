@@ -19,18 +19,28 @@ describe('Utils test', () => {
     expect(utils.xrplValueToNft('1e-81')).toEqual(1)
   })
 
-  it('Parse normal currency code', () => {
+  it('Should parse normal currency code', () => {
     expect(utils.currencyCodeFormat('USD')).toEqual('USD')
   })
 
-  it('Parse HEX currency code', () => {
+  it('Should parse HEX currency code', () => {
     expect(utils.currencyCodeFormat('534F4C4F00000000000000000000000000000000'))
       .toEqual('SOLO')
   })
 
-  it('Parse XLS 15 d currency code', () => {
+  it('Should parse XLS 15 d currency code', () => {
     expect(utils.currencyCodeFormat('021D001703B37004416E205852504C204E46543F'))
       .toEqual('An XRPL NFT?')
+  })
+
+  it('Should parse "XRP" hex as invalid', () => {
+    expect(utils.currencyCodeFormat('7872700000000000000000000000000000000000'))
+      .toEqual('???')
+  })
+
+  it('Should parse "XRP" as string as invalid', () => {
+    expect(utils.currencyCodeFormat('XRP'))
+      .toEqual('???')
   })
 })
 

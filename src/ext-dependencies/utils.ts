@@ -29,25 +29,25 @@ export const normalizeNodes = (metadata: any): any => {
 // Supports HEX currency code
 // Supports HEX currency code based on XLS15d
 export const currencyCodeFormat = (string: string, maxLength = 12): string => {
-  if(string.length === 3) {
+  if(string.length === 3 && string.trim().toLowerCase() !== 'xrp') {
     // Normal currency code
-    return string
+    return string.trim()
   }
   if(string.match(/^[a-fA-F0-9]{40}$/) && !isNaN(parseInt(string, 16))) {
     // HEX currency code
     const hex = string.toString().replace(/(00)+$/g, '')
     if (hex.startsWith('02')) {
       const xlf15d = Buffer.from(hex, 'hex').slice(8).toString('utf-8').slice(0, maxLength).trim()
-      if (xlf15d.match(/[a-zA-Z0-9]{3,}/)) {
+      if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== 'xrp') {
         return xlf15d
       }
     }
     const decodedHex = Buffer.from(hex, 'hex').toString('utf-8').slice(0, maxLength).trim()
-    if (decodedHex.match(/[a-zA-Z0-9]{3,}/)) {
+    if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== 'xrp') {
       return decodedHex
     }
   }
-  return string.slice(0, maxLength)
+  return '???'
 }
 
 // XLS-14d Sample implementation,
