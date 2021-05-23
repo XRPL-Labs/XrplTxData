@@ -1,4 +1,4 @@
-import {TxData, TxResult} from '../src/'
+import {TxData, TxResult, utils} from '../src/'
 import Debug from 'debug'
 import {MockedServer} from './components/MockedServer'
 import {validTx, validTxNotFound} from './components/MatchObjects'
@@ -7,6 +7,32 @@ import fixtures from './fixtures.json'
 // const log = Debug('txdata:tests')
 
 beforeAll(MockedServer)
+
+describe('Utils test', () => {
+  const floatString = '0.000000000000000000000000000000000000000000000000000000000000000000000000000000001'
+
+  it('Should encode NFT amount', () => {
+    expect(utils.nftValuetoXrpl(1)).toEqual(floatString)
+  })
+
+  it('Should decode NFT amount', () => {
+    expect(utils.xrplValueToNft('1e-81')).toEqual(1)
+  })
+
+  it('Parse normal currency code', () => {
+    expect(utils.currencyCodeFormat('USD')).toEqual('USD')
+  })
+
+  it('Parse HEX currency code', () => {
+    expect(utils.currencyCodeFormat('534F4C4F00000000000000000000000000000000'))
+      .toEqual('SOLO')
+  })
+
+  it('Parse XLS 15 d currency code', () => {
+    expect(utils.currencyCodeFormat('021D001703B37004416E205852504C204E46543F'))
+      .toEqual('An XRPL NFT?')
+  })
+})
 
 describe('TxData Tests', () => {
   it('Should fetch & close one (.getOne) existing TX', async () => {

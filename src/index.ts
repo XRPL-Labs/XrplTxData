@@ -12,6 +12,9 @@ const logInvalid = log.extend('invalid')
 
 export {parseBalanceChanges} from './ext-dependencies/balanceParser'
 
+import {currencyCodeFormat, xrplValueToNft, nftValuetoXrpl} from './ext-dependencies/utils'
+export const utils = {currencyCodeFormat, xrplValueToNft, nftValuetoXrpl}
+
 export type AnyJson = Record<string, unknown>
 
 export interface TxResult extends AnyJson {
