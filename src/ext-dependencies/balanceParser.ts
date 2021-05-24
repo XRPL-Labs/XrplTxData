@@ -21,7 +21,7 @@ type FormattedBalanceChange = {
   counterparty: string
   currency: string
   value: string
-  formatted?: {
+  formatted: {
     value: string
     currency: string
   }
