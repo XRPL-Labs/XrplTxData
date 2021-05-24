@@ -52,6 +52,19 @@ describe('TxData Tests', () => {
     expect(tx).toMatchObject(validTx)
   })
 
+  it('Should format xls-14d and xls-15d', async () => {
+    const TxD = new TxData()
+    const tx = await TxD.getOne('8F3CE0481EF31A1BE44AD7D744D286B0F440780CD0056951948F93A803D47F8B')
+    const formattedBalanceChange = tx.balanceChanges['rwietsevLFg8XSmG3bEZzFein1g8RBqWDZ']
+      .filter(c => c.currency !== 'XRP')[0]
+
+    expect(formattedBalanceChange.currency).toStrictEqual('021D001703B37004416E205852504C204E46543F')
+    expect(formattedBalanceChange.value).toStrictEqual('-1e-81')
+
+    expect(formattedBalanceChange.formatted.currency).toStrictEqual('An XRPL NFT?')
+    expect(formattedBalanceChange.formatted.value).toStrictEqual('-1')
+  })
+
   it('Should not allow fetching a second tx when in ended state', async () => {
     const TxD = new TxData()
     // Get the first one

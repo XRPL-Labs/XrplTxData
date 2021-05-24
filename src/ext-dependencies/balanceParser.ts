@@ -1,5 +1,5 @@
 import {BigNumber} from 'bignumber.js'
-import {dropsToXRP, normalizeNodes} from './utils'
+import {dropsToXRP, normalizeNodes, currencyCodeFormat, xrplValueToNft} from './utils'
 import {groupBy, mapValues, map, isEmpty, compact, flatten} from 'lodash'
 import {AnyJson} from '../index'
 
@@ -17,8 +17,22 @@ type BalanceChange = {
   value: string
 }
 
+type FormattedBalanceChange = {
+  counterparty: string
+  currency: string
+  value: string
+  formatted?: {
+    value: string
+    currency: string
+  }
+}
+
 export type BalanceChanges = {
   [key: string]: BalanceChange[]
+}
+
+export type FormattedBalanceChanges = {
+  [key: string]: FormattedBalanceChange[]
 }
 
 const groupByAddress = (balanceChanges: any) => {
@@ -99,8 +113,8 @@ const parseQuantities = (metadata: AnyJson, valueParser: any) => {
   return groupByAddress(compact(flatten(values)))
 }
 
-export const parseBalanceChanges = (metadata: AnyJson): BalanceChanges => {
-  return parseQuantities(metadata, (node: any) => {
+export const parseBalanceChanges = (metadata: AnyJson): FormattedBalanceChanges => {
+  const quantities = parseQuantities(metadata, (node: any) => {
     let value = null
     if (node.newFields.Balance) {
       value = parseValue(node.newFields.Balance)
@@ -109,4 +123,22 @@ export const parseBalanceChanges = (metadata: AnyJson): BalanceChanges => {
     }
     return value === null ? null : value.isZero() ? null : value
   })
+  const formatted = Object.keys(quantities).reduce((a: FormattedBalanceChanges, b: string): FormattedBalanceChanges => {
+    const formattedQuantities = quantities[b].map(q => {
+      return Object.assign(q, {
+        formatted: {
+          value: q.counterparty !== '' && q.value.match(/e/)
+           ? String(xrplValueToNft(q.value))
+           : q.value,
+          currency: q.currency === 'XRP' && q.counterparty === ''
+            ? 'XRP'
+            : currencyCodeFormat(q.currency)
+        }
+      })
+    })
+    Object.assign(a, {[b]: formattedQuantities})
+    return a
+  }, {})
+  // console.dir(formatted, {depth: 40})
+  return formatted
 }

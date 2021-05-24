@@ -2,7 +2,7 @@ import {w3cwebsocket as WebSocket} from 'websocket'
 import {debug as Debug} from 'debug'
 import {hostname} from 'os'
 import {EventEmitter} from 'events'
-import {parseBalanceChanges, BalanceChanges} from './ext-dependencies/balanceParser'
+import {parseBalanceChanges, FormattedBalanceChanges} from './ext-dependencies/balanceParser'
 
 const log = Debug('txdata')
 const logConnect = log.extend('connect')
@@ -56,7 +56,7 @@ type EmittedTxResult = {
 
 type ResolvedLookup = {
   result: TxResult | TxNotFound
-  balanceChanges: BalanceChanges
+  balanceChanges: FormattedBalanceChanges
   resolvedBy: string
   host: string
 }
@@ -184,11 +184,10 @@ export class TxData {
       ): void => {
         cleanup()
         const result = this.FormatResult(eventResult)
-        resolve({result, resolvedBy, host,
-          balanceChanges: typeof (result as TxResult).meta !== 'undefined'
-            ? parseBalanceChanges((result as TxResult).meta)
-            : {}
-        })
+        const balanceChanges = typeof (result as TxResult).meta !== 'undefined'
+          ? parseBalanceChanges((result as TxResult).meta)
+          : {}
+        resolve({result, resolvedBy, host, balanceChanges})
       }
 
       const onTx = (r: EmittedTxResult) => {

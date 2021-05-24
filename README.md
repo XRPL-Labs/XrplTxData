@@ -106,6 +106,11 @@ The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four 
 - **`result`** (object): containing the error or transaction response from the XRPL node
 - **`balanceChanges`** (object): containing the parsed balance changes for all accounts affected by this transaction
 
+#### Formatted output
+
+The `balanceChanges` object contains (per element) a `formatted` property. This contains the amount and currency
+in formatted form: value decoded as NFT value (xls-14d) (when this applies) and the currency code decoded from HEX / xls-15d format.
+
 #### Sample: response for a non existing transaction:
 
 ```json
@@ -145,14 +150,16 @@ The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four 
       {
         "counterparty": "",
         "currency": "XRP",
-        "value": "-1.000012"
+        "value": "-1.000012",
+        "formatted": { "value": "-1.000012", "currency": "XRP" }
       }
     ],
     "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT": [
       {
         "counterparty": "",
         "currency": "XRP",
-        "value": "1"
+        "value": "1",
+        "formatted": { "value": "1", "currency": "XRP" }
       }
     ]
   }
@@ -186,7 +193,8 @@ The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four 
       {
         "counterparty": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",
         "currency": "EUR",
-        "value": "-1571.649031281391"
+        "value": "-1571.649031281391",
+        "formatted": { "value": "-1571.649031281391", "currency": "XRP" }
       },
       ...
     ],
@@ -194,12 +202,14 @@ The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four 
       {
         "counterparty": "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq",
         "currency": "EUR",
-        "value": "1571.649031281391"
+        "value": "1571.649031281391",
+        "formatted": { "value": "1571.649031281391", "currency": "XRP" }
       },
       {
         "counterparty": "",
         "currency": "XRP",
-        "value": "-5749.538284"
+        "value": "-5749.538284",
+        "formatted": { "value": "-5749.538284", "currency": "XRP" }
       }
     ],
     ...
