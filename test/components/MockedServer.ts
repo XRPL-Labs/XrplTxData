@@ -20,6 +20,9 @@ export const MockedServer = () => {
         // log('Got new MockWS message', m)
         if (typeof m.command === 'string') {
           const json = (j: any) => {
+            if (typeof j === 'undefined') {
+              throw new Error('Cannot find this mock tx')
+            }
             return JSON.stringify(Object.assign(j, {id: m?.id}))
           }
           if (m.command === 'server_info') {
