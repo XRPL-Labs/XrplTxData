@@ -481,7 +481,9 @@ export class TxData {
         const onTx = (r: Tx | TxNotFound) => {
           if (typeof r.id !== 'undefined') {
             if (r.id === id) {
-              this.EventBus.off('xrpljson', onTx)
+              process.nextTick(() => {
+                this.EventBus.removeListener('xrpljson', onTx)
+              })
               return resolve(r)
             }
           }
