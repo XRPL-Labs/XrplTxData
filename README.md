@@ -63,6 +63,8 @@ txd.get('85E19A60511544759C3F6EF814EDCDDE606640991CDDE5409354D21112F91EAA', 20)
   })
 ```
 
+More info: https://xumm.readme.io/docs/secure-payment-verification#example-flow--code-using-the-xrpl-txdata-package-jsts
+
 #### Advanced options
 
 By default, these full history nodes will be used (in order):
