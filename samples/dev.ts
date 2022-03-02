@@ -14,21 +14,22 @@ log('Starting...')
 const main = async () => {
   try {
     const txd = new TxData([
-      'ws://localhost',
-      'wss://s1.ripple.com',
-      'wss://xrpl.ws',
-      'wss://s2.ripple.com',
-      'wss://xrpl.link'
+      // 'ws://localhost',
+      // 'wss://s1.ripple.com',
+      // 'wss://xrpl.ws',
+      // 'wss://s2.ripple.com',
+      // 'wss://xrpl.link'
+      'wss://testnet.xrpl-labs.com'
     ], {
       EndpointTimeoutMs: 1000,
-      OverallTimeoutMs: 7500
+      OverallTimeoutMs: 7500,
+      AllowNoFullHistory: true
     })
 
-    const tx = await txd.getOne('B34EFCDA6A9D6B19670E19ECD3CFD638177EED92B863756DD96CFD197B940515') // Real
-    log(`TX`, await tx)
-
-    // const txE = await txd.get('B34EFCDA6A9D6B19670E19ECD3CFD638177EED92B863756DD96CFD197B940516')
-    // log({txE})
+    txd.getOne('85E19A60511544759C3F6EF814EDCDDE606640991CDDE5409354D21112F91EAA', 20)
+      .then(tx => {
+        log(`TX`, tx)
+      })
 
     // const txV = await txd.get('2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DD') // Real
     // log(txV)
@@ -42,14 +43,9 @@ const main = async () => {
     // }
     // log(txV.balanceChanges)
 
-    txd.end()
-
-    // setTimeout(async () => {
-    //   const tx = await txd.get('B34EFCDA6A9D6B19670E19ECD3CFD638177EED92B863756DD96CFD197B940517')
-    //   log(`\n\nTX4`, await tx)
-    // }, 900)
+    // txd.end()
   } catch (e) {
-    log({caughtError: e.message})
+    log({caughtError: (e as any).message})
   }
 }
 
