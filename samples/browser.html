@@ -20,12 +20,11 @@
       const {TxData} = require('TxData')
 
       const txd = new TxData([
-        'wss://s2.ripple.com',
-        'wss://xrpl.ws',
+        'wss://xrplcluster.com',
         'wss://xrpl.link'
       ], {
-        OverallTimeoutMs: 3000,
-        EndpointTimeoutMs: 500
+        OverallTimeoutMs: 6000,
+        EndpointTimeoutMs: 1500
       })
 
       log('Constructed TxData')
