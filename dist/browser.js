@@ -106,7 +106,7 @@ exports.parseBalanceChanges = (metadata) => {
 };
 
 },{"./utils":2,"bignumber.js":4,"lodash":11}],2:[function(require,module,exports){
-(function (Buffer){
+(function (Buffer){(function (){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nftValuetoXrpl = exports.xrplValueToNft = exports.currencyCodeFormat = exports.normalizeNodes = exports.normalizeNode = exports.dropsToXRP = void 0;
@@ -155,6 +155,10 @@ exports.xrplValueToNft = (value) => {
     const data = String(Number(value)).split(/e/i);
     const finish = (returnValue) => {
         const unsignedReturnValue = returnValue.replace(/^\-/, '');
+        if (unsignedReturnValue.length > 83) {
+            // Too many tokens to be NFT-like as per XLS14d proposal
+            return false;
+        }
         if (data.length > 1 && unsignedReturnValue.slice(0, 2) === '0.' && Number(data[1]) < -70) {
             // Positive below zero amount, could be NFT
             return (sign === '-' ? -1 : 1) * Number((unsignedReturnValue.slice(2) + '0'.repeat(83 - unsignedReturnValue.length))
@@ -196,7 +200,7 @@ exports.nftValuetoXrpl = (value, accountBalance) => {
     return sign + '0.' + '0'.repeat(81 - unsignedValue.length) + unsignedValue;
 };
 
-}).call(this,require("buffer").Buffer)
+}).call(this)}).call(this,require("buffer").Buffer)
 },{"buffer":5}],3:[function(require,module,exports){
 'use strict'
 
@@ -325,9 +329,7 @@ function fromByteArray (uint8) {
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(
-      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
-    ))
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
@@ -356,10 +358,10 @@ function fromByteArray (uint8) {
   'use strict';
 
 /*
- *      bignumber.js v9.0.1
+ *      bignumber.js v9.0.2
  *      A JavaScript library for arbitrary-precision arithmetic.
  *      https://github.com/MikeMcl/bignumber.js
- *      Copyright (c) 2020 Michael Mclaughlin <M8ch88l@gmail.com>
+ *      Copyright (c) 2021 Michael Mclaughlin <M8ch88l@gmail.com>
  *      MIT Licensed.
  *
  *      BigNumber.prototype methods     |  BigNumber methods
@@ -499,7 +501,7 @@ function fromByteArray (uint8) {
 
       // The maximum number of significant digits of the result of the exponentiatedBy operation.
       // If POW_PRECISION is 0, there will be unlimited significant digits.
-      POW_PRECISION = 0,                    // 0 to MAX
+      POW_PRECISION = 0,                       // 0 to MAX
 
       // The format specification used by the BigNumber.prototype.toFormat method.
       FORMAT = {
@@ -509,14 +511,15 @@ function fromByteArray (uint8) {
         groupSeparator: ',',
         decimalSeparator: '.',
         fractionGroupSize: 0,
-        fractionGroupSeparator: '\xA0',      // non-breaking space
+        fractionGroupSeparator: '\xA0',        // non-breaking space
         suffix: ''
       },
 
       // The alphabet used for base conversion. It must be at least 2 characters long, with no '+',
       // '-', '.', whitespace, or repeated character.
       // '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_'
-      ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
+      ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz',
+      alphabetHasNormalDecimalDigits = true;
 
 
     //------------------------------------------------------------------------------------------
@@ -606,7 +609,7 @@ function fromByteArray (uint8) {
 
         // Allow exponential notation to be used with base 10 argument, while
         // also rounding to DECIMAL_PLACES as with other bases.
-        if (b == 10) {
+        if (b == 10 && alphabetHasNormalDecimalDigits) {
           x = new BigNumber(v);
           return round(x, DECIMAL_PLACES + x.e + 1, ROUNDING_MODE);
         }
@@ -898,6 +901,7 @@ function fromByteArray (uint8) {
             // Disallow if less than two characters,
             // or if it contains '+', '-', '.', whitespace, or a repeated character.
             if (typeof v == 'string' && !/^.?$|[+\-.\s]|(.).*\1/.test(v)) {
+              alphabetHasNormalDecimalDigits = v.slice(0, 10) == '0123456789';
               ALPHABET = v;
             } else {
               throw Error
@@ -3072,7 +3076,7 @@ function fromByteArray (uint8) {
           str = e <= TO_EXP_NEG || e >= TO_EXP_POS
            ? toExponential(coeffToString(n.c), e)
            : toFixedPoint(coeffToString(n.c), e, '0');
-        } else if (b === 10) {
+        } else if (b === 10 && alphabetHasNormalDecimalDigits) {
           n = round(new BigNumber(n), DECIMAL_PLACES + e + 1, ROUNDING_MODE);
           str = toFixedPoint(coeffToString(n.c), n.e, '0');
         } else {
@@ -3256,7 +3260,7 @@ function fromByteArray (uint8) {
 })(this);
 
 },{}],5:[function(require,module,exports){
-(function (Buffer){
+(function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -5035,9 +5039,9 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-}).call(this,require("buffer").Buffer)
+}).call(this)}).call(this,require("buffer").Buffer)
 },{"base64-js":3,"buffer":5,"ieee754":10}],6:[function(require,module,exports){
-(function (process){
+(function (process){(function (){
 /* eslint-env browser */
 
 /**
@@ -5049,6 +5053,16 @@ exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
 exports.storage = localstorage();
+exports.destroy = (() => {
+	let warned = false;
+
+	return () => {
+		if (!warned) {
+			warned = true;
+			console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
+		}
+	};
+})();
 
 /**
  * Colors.
@@ -5298,7 +5312,7 @@ formatters.j = function (v) {
 	}
 };
 
-}).call(this,require('_process'))
+}).call(this)}).call(this,require('_process'))
 },{"./common":7,"_process":14}],7:[function(require,module,exports){
 
 /**
@@ -5314,15 +5328,11 @@ function setup(env) {
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
 	createDebug.humanize = require('ms');
+	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
 		createDebug[key] = env[key];
 	});
-
-	/**
-	* Active `debug` instances.
-	*/
-	createDebug.instances = [];
 
 	/**
 	* The currently active debug mode names, and names to skip.
@@ -5340,7 +5350,7 @@ function setup(env) {
 
 	/**
 	* Selects a color for a debug namespace
-	* @param {String} namespace The namespace string for the for the debug instance to be colored
+	* @param {String} namespace The namespace string for the debug instance to be colored
 	* @return {Number|String} An ANSI color code for the given namespace
 	* @api private
 	*/
@@ -5365,6 +5375,9 @@ function setup(env) {
 	*/
 	function createDebug(namespace) {
 		let prevTime;
+		let enableOverride = null;
+		let namespacesCache;
+		let enabledCache;
 
 		function debug(...args) {
 			// Disabled?
@@ -5394,7 +5407,7 @@ function setup(env) {
 			args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
 				// If we encounter an escaped % then don't increase the array index
 				if (match === '%%') {
-					return match;
+					return '%';
 				}
 				index++;
 				const formatter = createDebug.formatters[format];
@@ -5417,29 +5430,36 @@ function setup(env) {
 		}
 
 		debug.namespace = namespace;
-		debug.enabled = createDebug.enabled(namespace);
 		debug.useColors = createDebug.useColors();
 		debug.color = createDebug.selectColor(namespace);
-		debug.destroy = destroy;
 		debug.extend = extend;
+		debug.destroy = createDebug.destroy; // XXX Temporary. Will be removed in the next major release.
+
+		Object.defineProperty(debug, 'enabled', {
+			enumerable: true,
+			configurable: false,
+			get: () => {
+				if (enableOverride !== null) {
+					return enableOverride;
+				}
+				if (namespacesCache !== createDebug.namespaces) {
+					namespacesCache = createDebug.namespaces;
+					enabledCache = createDebug.enabled(namespace);
+				}
+
+				return enabledCache;
+			},
+			set: v => {
+				enableOverride = v;
+			}
+		});
 
 		// Env-specific initialization logic for debug instances
 		if (typeof createDebug.init === 'function') {
 			createDebug.init(debug);
 		}
 
-		createDebug.instances.push(debug);
-
 		return debug;
-	}
-
-	function destroy() {
-		const index = createDebug.instances.indexOf(this);
-		if (index !== -1) {
-			createDebug.instances.splice(index, 1);
-			return true;
-		}
-		return false;
 	}
 
 	function extend(namespace, delimiter) {
@@ -5457,6 +5477,7 @@ function setup(env) {
 	*/
 	function enable(namespaces) {
 		createDebug.save(namespaces);
+		createDebug.namespaces = namespaces;
 
 		createDebug.names = [];
 		createDebug.skips = [];
@@ -5478,11 +5499,6 @@ function setup(env) {
 			} else {
 				createDebug.names.push(new RegExp('^' + namespaces + '$'));
 			}
-		}
-
-		for (i = 0; i < createDebug.instances.length; i++) {
-			const instance = createDebug.instances[i];
-			instance.enabled = createDebug.enabled(instance.namespace);
 		}
 	}
 
@@ -5556,6 +5572,14 @@ function setup(env) {
 			return val.stack || val.message;
 		}
 		return val;
+	}
+
+	/**
+	* XXX DO NOT USE. This is a temporary stub function.
+	* XXX It WILL be removed in the next major release.
+	*/
+	function destroy() {
+		console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
 	}
 
 	createDebug.enable(createDebug.load());
@@ -6128,6 +6152,7 @@ function functionBindPolyfill(context) {
 }
 
 },{}],10:[function(require,module,exports){
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -6214,7 +6239,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 },{}],11:[function(require,module,exports){
-(function (global){
+(function (global){(function (){
 /**
  * @license
  * Lodash <https://lodash.com/>
@@ -6229,14 +6254,15 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.20';
+  var VERSION = '4.17.21';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
 
   /** Error message constants. */
   var CORE_ERROR_TEXT = 'Unsupported core-js use. Try https://npms.io/search?q=ponyfill.',
-      FUNC_ERROR_TEXT = 'Expected a function';
+      FUNC_ERROR_TEXT = 'Expected a function',
+      INVALID_TEMPL_VAR_ERROR_TEXT = 'Invalid `variable` option passed into `_.template`';
 
   /** Used to stand-in for `undefined` hash values. */
   var HASH_UNDEFINED = '__lodash_hash_undefined__';
@@ -6369,10 +6395,11 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var reRegExpChar = /[\\^$.*+?()[\]{}|]/g,
       reHasRegExpChar = RegExp(reRegExpChar.source);
 
-  /** Used to match leading and trailing whitespace. */
-  var reTrim = /^\s+|\s+$/g,
-      reTrimStart = /^\s+/,
-      reTrimEnd = /\s+$/;
+  /** Used to match leading whitespace. */
+  var reTrimStart = /^\s+/;
+
+  /** Used to match a single whitespace character. */
+  var reWhitespace = /\s/;
 
   /** Used to match wrap detail comments. */
   var reWrapComment = /\{(?:\n\/\* \[wrapped with .+\] \*\/)?\n?/,
@@ -6381,6 +6408,18 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
   /** Used to match words composed of alphanumeric characters. */
   var reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
+
+  /**
+   * Used to validate the `validate` option in `_.template` variable.
+   *
+   * Forbids characters which could potentially change the meaning of the function argument definition:
+   * - "()," (modification of function parameters)
+   * - "=" (default value)
+   * - "[]{}" (destructuring of function parameters)
+   * - "/" (beginning of a comment)
+   * - whitespace
+   */
+  var reForbiddenIdentifierChars = /[()=,{}\[\]\/\s]/;
 
   /** Used to match backslashes in property paths. */
   var reEscapeChar = /\\(\\)?/g;
@@ -7211,6 +7250,19 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   }
 
   /**
+   * The base implementation of `_.trim`.
+   *
+   * @private
+   * @param {string} string The string to trim.
+   * @returns {string} Returns the trimmed string.
+   */
+  function baseTrim(string) {
+    return string
+      ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+      : string;
+  }
+
+  /**
    * The base implementation of `_.unary` without support for storing metadata.
    *
    * @private
@@ -7541,6 +7593,21 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
     return hasUnicode(string)
       ? unicodeToArray(string)
       : asciiToArray(string);
+  }
+
+  /**
+   * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+   * character of `string`.
+   *
+   * @private
+   * @param {string} string The string to inspect.
+   * @returns {number} Returns the index of the last non-whitespace character.
+   */
+  function trimmedEndIndex(string) {
+    var index = string.length;
+
+    while (index-- && reWhitespace.test(string.charAt(index))) {}
+    return index;
   }
 
   /**
@@ -18711,7 +18778,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       if (typeof value != 'string') {
         return value === 0 ? value : +value;
       }
-      value = value.replace(reTrim, '');
+      value = baseTrim(value);
       var isBinary = reIsBinary.test(value);
       return (isBinary || reIsOctal.test(value))
         ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
@@ -21083,6 +21150,12 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       if (!variable) {
         source = 'with (obj) {\n' + source + '\n}\n';
       }
+      // Throw an error if a forbidden character was found in `variable`, to prevent
+      // potential command injection attacks.
+      else if (reForbiddenIdentifierChars.test(variable)) {
+        throw new Error(INVALID_TEMPL_VAR_ERROR_TEXT);
+      }
+
       // Cleanup code by stripping empty strings.
       source = (isEvaluating ? source.replace(reEmptyStringLeading, '') : source)
         .replace(reEmptyStringMiddle, '$1')
@@ -21196,7 +21269,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
     function trim(string, chars, guard) {
       string = toString(string);
       if (string && (guard || chars === undefined)) {
-        return string.replace(reTrim, '');
+        return baseTrim(string);
       }
       if (!string || !(chars = baseToString(chars))) {
         return string;
@@ -21231,7 +21304,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
     function trimEnd(string, chars, guard) {
       string = toString(string);
       if (string && (guard || chars === undefined)) {
-        return string.replace(reTrimEnd, '');
+        return string.slice(0, trimmedEndIndex(string) + 1);
       }
       if (!string || !(chars = baseToString(chars))) {
         return string;
@@ -23377,7 +23450,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   }
 }.call(this));
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],12:[function(require,module,exports){
 /**
  * Helpers.
@@ -23781,12 +23854,16 @@ process.umask = function() { return 0; };
 
 },{}],15:[function(require,module,exports){
 var _globalThis;
-try {
-	_globalThis = require('es5-ext/global');
-} catch (error) {
-} finally {
-	if (!_globalThis && typeof window !== 'undefined') { _globalThis = window; }
-	if (!_globalThis) { throw new Error('Could not determine global this'); }
+if (typeof globalThis === 'object') {
+	_globalThis = globalThis;
+} else {
+	try {
+		_globalThis = require('es5-ext/global');
+	} catch (error) {
+	} finally {
+		if (!_globalThis && typeof window !== 'undefined') { _globalThis = window; }
+		if (!_globalThis) { throw new Error('Could not determine global this'); }
+	}
 }
 
 var NativeWebSocket = _globalThis.WebSocket || _globalThis.MozWebSocket;
@@ -23836,77 +23913,8 @@ module.exports = require('../package.json').version;
 
 },{"../package.json":17}],17:[function(require,module,exports){
 module.exports={
-  "_args": [
-    [
-      "websocket@1.0.32",
-      "/Users/wrw/Desktop/XUMM/txdata"
-    ]
-  ],
-  "_from": "websocket@1.0.32",
-  "_id": "websocket@1.0.32",
-  "_inBundle": false,
-  "_integrity": "sha512-i4yhcllSP4wrpoPMU2N0TQ/q0O94LRG/eUQjEAamRltjQ1oT1PFFKOG4i877OlJgCG8rw6LrrowJp+TYCEWF7Q==",
-  "_location": "/websocket",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "version",
-    "registry": true,
-    "raw": "websocket@1.0.32",
-    "name": "websocket",
-    "escapedName": "websocket",
-    "rawSpec": "1.0.32",
-    "saveSpec": null,
-    "fetchSpec": "1.0.32"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.32.tgz",
-  "_spec": "1.0.32",
-  "_where": "/Users/wrw/Desktop/XUMM/txdata",
-  "author": {
-    "name": "Brian McKelvey",
-    "email": "theturtle32@gmail.com",
-    "url": "https://github.com/theturtle32"
-  },
-  "browser": "lib/browser.js",
-  "bugs": {
-    "url": "https://github.com/theturtle32/WebSocket-Node/issues"
-  },
-  "config": {
-    "verbose": false
-  },
-  "contributors": [
-    {
-      "name": "Iñaki Baz Castillo",
-      "email": "ibc@aliax.net",
-      "url": "http://dev.sipdoc.net"
-    }
-  ],
-  "dependencies": {
-    "bufferutil": "^4.0.1",
-    "debug": "^2.2.0",
-    "es5-ext": "^0.10.50",
-    "typedarray-to-buffer": "^3.1.5",
-    "utf-8-validate": "^5.0.2",
-    "yaeti": "^0.0.6"
-  },
+  "name": "websocket",
   "description": "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
-  "devDependencies": {
-    "buffer-equal": "^1.0.0",
-    "gulp": "^4.0.2",
-    "gulp-jshint": "^2.0.4",
-    "jshint": "^2.0.0",
-    "jshint-stylish": "^2.2.1",
-    "tape": "^4.9.1"
-  },
-  "directories": {
-    "lib": "./lib"
-  },
-  "engines": {
-    "node": ">=4.0.0"
-  },
-  "homepage": "https://github.com/theturtle32/WebSocket-Node",
   "keywords": [
     "websocket",
     "websockets",
@@ -23919,22 +23927,52 @@ module.exports={
     "server",
     "client"
   ],
-  "license": "Apache-2.0",
-  "main": "index",
-  "name": "websocket",
+  "author": "Brian McKelvey <theturtle32@gmail.com> (https://github.com/theturtle32)",
+  "contributors": [
+    "Iñaki Baz Castillo <ibc@aliax.net> (http://dev.sipdoc.net)"
+  ],
+  "version": "1.0.34",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theturtle32/WebSocket-Node.git"
+    "url": "https://github.com/theturtle32/WebSocket-Node.git"
+  },
+  "homepage": "https://github.com/theturtle32/WebSocket-Node",
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "debug": "^2.2.0",
+    "es5-ext": "^0.10.50",
+    "typedarray-to-buffer": "^3.1.5",
+    "utf-8-validate": "^5.0.2",
+    "yaeti": "^0.0.6"
+  },
+  "devDependencies": {
+    "buffer-equal": "^1.0.0",
+    "gulp": "^4.0.2",
+    "gulp-jshint": "^2.0.4",
+    "jshint-stylish": "^2.2.1",
+    "jshint": "^2.0.0",
+    "tape": "^4.9.1"
+  },
+  "config": {
+    "verbose": false
   },
   "scripts": {
-    "gulp": "gulp",
-    "test": "tape test/unit/*.js"
+    "test": "tape test/unit/*.js",
+    "gulp": "gulp"
   },
-  "version": "1.0.32"
+  "main": "index",
+  "directories": {
+    "lib": "./lib"
+  },
+  "browser": "lib/browser.js",
+  "license": "Apache-2.0"
 }
 
 },{}],"TxData":[function(require,module,exports){
-(function (process,global){
+(function (process,global){(function (){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -23993,6 +24031,7 @@ class TxData {
         ];
         this.ConnectionAndQueryTimeoutMs = 1250;
         this.LookupTimeoutMs = 10000;
+        this.AllowNoFullHistory = false;
         this.EventBus = new events_1.EventEmitter();
         log('Constructed');
         this.ParseEndpoints(endpoints);
@@ -24028,6 +24067,9 @@ class TxData {
             if (typeof options.OverallTimeoutMs === 'number' && options.OverallTimeoutMs >= 1) {
                 this.LookupTimeoutMs = options.OverallTimeoutMs;
             }
+            if (typeof options.AllowNoFullHistory === 'boolean') {
+                this.AllowNoFullHistory = options.AllowNoFullHistory;
+            }
         }
         const minTimeoutMs = this.ConnectionAndQueryTimeoutMs * (this.Endpoints.length + 1);
         if (this.LookupTimeoutMs < minTimeoutMs) {
@@ -24050,14 +24092,14 @@ class TxData {
             this.WsConnections = [];
         }
     }
-    getOne(TxHash) {
+    getOne(TxHash, WaitForSeconds = 0) {
         return __awaiter(this, void 0, void 0, function* () {
-            const tx = yield this.get(TxHash);
+            const tx = yield this.get(TxHash, WaitForSeconds);
             this.end();
             return tx;
         });
     }
-    get(TxHash) {
+    get(TxHash, WaitForSeconds = 0) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.Ended) {
                 throw this.GenerateError('OBJECT_IN_ENDED_STATE');
@@ -24069,21 +24111,67 @@ class TxData {
             };
             const getPromise = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 var e_1, _a;
-                const Timer = setTimeout(() => {
-                    reject(this.GenerateError('MAX_LOOKUP_TIME_REACHED'));
-                }, this.LookupTimeoutMs);
+                let Timer;
+                let WaitMode = false;
+                let WaitModeFinish;
+                const setTimer = (SecondsAdded = 0) => {
+                    clearTimeout(Timer);
+                    const timeoutMs = this.LookupTimeoutMs + SecondsAdded * 1000;
+                    log('Set Timeout Timer at (sec)', timeoutMs / 1000);
+                    const TimedOut = () => {
+                        if (WaitMode) {
+                            WaitModeFinish();
+                        }
+                        else {
+                            reject(this.GenerateError('MAX_LOOKUP_TIME_REACHED'));
+                        }
+                    };
+                    Timer = setTimeout(() => {
+                        TimedOut();
+                    }, timeoutMs);
+                };
+                setTimer();
                 const cleanup = () => {
                     clearTimeout(Timer);
                     meta.resolved = true;
                     this.EventBus.removeListener('result', onTx);
+                    this.EventBus.listeners('tx.' + TxHash).forEach(l => this.EventBus.removeListener('tx.' + TxHash, l));
                 };
                 const ResolveFormatted = (eventResult, resolvedBy, host) => {
-                    cleanup();
-                    const result = this.FormatResult(eventResult);
-                    const balanceChanges = typeof result.meta !== 'undefined'
-                        ? balanceParser_1.parseBalanceChanges(result.meta)
-                        : {};
-                    resolve({ result, resolvedBy, host, balanceChanges });
+                    var _a;
+                    const finish = (customEventResult, customHost) => {
+                        var _a, _b, _c, _d, _e;
+                        cleanup();
+                        const result = this.FormatResult(customEventResult ? customEventResult : eventResult);
+                        const balanceChanges = typeof result.meta !== 'undefined'
+                            ? balanceParser_1.parseBalanceChanges(result.meta)
+                            : {};
+                        resolve({
+                            result: (customEventResult === null || customEventResult === void 0 ? void 0 : customEventResult.result) ? Object.assign(Object.assign({}, (_a = customEventResult.result) === null || _a === void 0 ? void 0 : _a.transaction), { meta: (_b = customEventResult.result) === null || _b === void 0 ? void 0 : _b.meta, validated: (_c = customEventResult.result) === null || _c === void 0 ? void 0 : _c.validated, ledger_index: (_d = customEventResult.result) === null || _d === void 0 ? void 0 : _d.ledger_index, inLedger: (_e = customEventResult.result) === null || _e === void 0 ? void 0 : _e.ledger_index }) : result,
+                            resolvedBy: customHost ? 'asynchash' : resolvedBy,
+                            host: customHost ? customHost : host,
+                            balanceChanges
+                        });
+                    };
+                    if (((_a = eventResult) === null || _a === void 0 ? void 0 : _a.error) === 'txnNotFound' && WaitForSeconds > 0) {
+                        // Not found
+                        if (!WaitMode) {
+                            log('TX not found on ledger, could still arrive, wait for # sec.:', WaitForSeconds, TxHash);
+                            setTimer(WaitForSeconds);
+                            WaitMode = true;
+                            WaitModeFinish = finish;
+                            this.EventBus.once('tx.' + TxHash, event => {
+                                finish({
+                                    status: event.response.status,
+                                    type: event.response.type,
+                                    result: event.response
+                                }, event.url);
+                            });
+                        }
+                    }
+                    else {
+                        finish();
+                    }
                 };
                 const onTx = (r) => {
                     if (!meta.resolved && r.txHash === TxHash) {
@@ -24191,6 +24279,7 @@ class TxData {
                     socket.onopen = () => {
                         if (socket.readyState === socket.OPEN) {
                             socket.send(JSON.stringify({ command: 'server_info' }));
+                            socket.send(JSON.stringify({ command: 'subscribe', streams: ['transactions'] }));
                         }
                     };
                     // socket.onclose = () => {}
@@ -24207,18 +24296,23 @@ class TxData {
                         resolve(socket);
                     };
                     socket.onmessage = (m) => __awaiter(this, void 0, void 0, function* () {
-                        var _a, _b, _c, _d;
+                        var _a, _b, _c, _d, _e, _f, _g;
                         try {
                             const response = JSON.parse(m.data.toString());
                             if (socketMeta.ready) {
                                 this.EventBus.emit('xrpljson', response);
+                                const txHash = (_b = (_a = response) === null || _a === void 0 ? void 0 : _a.transaction) === null || _b === void 0 ? void 0 : _b.hash;
+                                if (((_c = response) === null || _c === void 0 ? void 0 : _c.validated) && txHash) {
+                                    // log('Seen TX', txHash, 'emitted', 'tx.#')
+                                    this.EventBus.emit('tx.' + txHash, { response, url: socket.url });
+                                }
                             }
                             else {
-                                if (typeof ((_b = (_a = response === null || response === void 0 ? void 0 : response.result) === null || _a === void 0 ? void 0 : _a.info) === null || _b === void 0 ? void 0 : _b.complete_ledgers) !== 'undefined') {
+                                if (typeof ((_e = (_d = response === null || response === void 0 ? void 0 : response.result) === null || _d === void 0 ? void 0 : _d.info) === null || _e === void 0 ? void 0 : _e.complete_ledgers) !== 'undefined') {
                                     socketMeta.ready = true;
-                                    const ledgerString = String(((_d = (_c = response === null || response === void 0 ? void 0 : response.result) === null || _c === void 0 ? void 0 : _c.info) === null || _d === void 0 ? void 0 : _d.complete_ledgers) || '');
+                                    const ledgerString = String(((_g = (_f = response === null || response === void 0 ? void 0 : response.result) === null || _f === void 0 ? void 0 : _f.info) === null || _g === void 0 ? void 0 : _g.complete_ledgers) || '');
                                     const isFullHistory = ledgerString.split(',').length < 2 && ledgerString.split('-')[0] === '32570';
-                                    if (!isFullHistory) {
+                                    if (!isFullHistory && !this.AllowNoFullHistory) {
                                         logInvalid('Closed connection to ', socket.url, 'incomplete history:', ledgerString);
                                         this.Endpoints[index] = '';
                                         yield socket.close();
@@ -24300,5 +24394,5 @@ class TxData {
 }
 exports.TxData = TxData;
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./ext-dependencies/balanceParser":1,"./ext-dependencies/utils":2,"_process":14,"debug":6,"events":9,"os":13,"websocket":15}]},{},[]);
