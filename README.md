@@ -28,7 +28,7 @@ const main = async () => {
 main()
 ```
 
-Fetching multiple transactionos and close the WebSocket connection(s) programmatically:
+Fetching multiple transactions and close the WebSocket connection(s) programmatically:
 
 ```javascript
 const txd = new TxData()
@@ -46,6 +46,21 @@ const main = async () => {
 }
 
 main()
+```
+
+### Fetching a transaction that may not have been applied to a ledger
+
+When you are using this lib. to fetch a transaction, you may fetch a transaction before a transaction has been included in a validated ledger. This would result in a "Not Found" error, while if queried a couple of seconds later, the transaction would have been found.
+
+If you are dealing with live / realtime transactions, you may want to instruct this lib. to wait a couple of more seconds while monitoring the live XRP Ledger transaction stream for the transaction(s) you're interested in.
+
+You can do this by providing a second argument (Number, time in seconds) to the `.get()` or `.getOne()` methods. When a second argument (Number, time in seconds) is provided & the initial call will yield a "Not Found" error, this lib. will watch the live transaction stream for the provided amount of seconds and resolve when the transaction hits a validated ledger. If the transaction is not included in a ledger within the provided amount of seconds, the `.get()` or `.getOne()` method will resolve with the initial "Not Found" response.
+
+```javascript
+txd.get('85E19A60511544759C3F6EF814EDCDDE606640991CDDE5409354D21112F91EAA', 20)
+  .then(tx => {
+    log(`Got it anyway`, tx)
+  })
 ```
 
 #### Advanced options
@@ -81,7 +96,10 @@ const txd = new TxData([], {
   // Try the next server after 0.75 sec.
   EndpointTimeoutMs: 750,
   // Throw an error if none of the servers connected  & replied in 5 seconds
-  OverallTimeoutMs: 5000
+  OverallTimeoutMs: 5000,
+  // Throw an error none of the provided nodes provides full history. If
+  // you want to allow non full history nodes, set to `true`.
+  AllowNoFullHistory: false
 })
 ```
 
@@ -102,7 +120,7 @@ Alternatively you can get a [prebuilt](https://cdn.jsdelivr.net/gh/XRPL-Labs/Xrp
 The response of a `.get(someTxHash)` / `.getOne(someTxHash)` call contains four properties:
 
 - `host` (string): the endpoint (connetion url) of the first node replying to the request 
-- `resolvedBy` (string): `"generator"` if the host replied within the `EndpointTimeoutMs` timeout, `"emitter"` if the first reply came in after the `EndpointTimeoutMs` timeout, but before the next host replied 
+- `resolvedBy` (string): `"generator"` if the host replied within the `EndpointTimeoutMs` timeout, `"emitter"` if the first reply came in after the `EndpointTimeoutMs` timeout, but before the next host replied, or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
 - **`result`** (object): containing the error or transaction response from the XRPL node
 - **`balanceChanges`** (object): containing the parsed balance changes for all accounts affected by this transaction
 
@@ -125,7 +143,7 @@ in formatted form: value decoded as NFT value (xls-14d) (when this applies) and 
   },
   "resolvedBy": "generator",
   "host": "wss://s2.ripple.com/",
-  "balanceChanges": {}
+  "balanceChanges": {, or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
 }
 ```
 
@@ -188,7 +206,7 @@ in formatted form: value decoded as NFT value (xls-14d) (when this applies) and 
   },
   "resolvedBy": "generator",
   "host": "wss://s2.ripple.com/",
-  "balanceChanges": {
+  "balanceChanges": , or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
     "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq": [
       {
         "counterparty": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",

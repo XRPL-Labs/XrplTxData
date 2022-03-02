@@ -64,6 +64,7 @@ type ResolvedLookup = {
 type TxDataOptions = {
   EndpointTimeoutMs?: number
   OverallTimeoutMs?: number
+  AllowNoFullHistory?: boolean
 }
 
 export class TxData {
@@ -80,6 +81,7 @@ export class TxData {
 
   private ConnectionAndQueryTimeoutMs: number = 1250
   private LookupTimeoutMs: number = 10000
+  private AllowNoFullHistory: boolean = false
 
   constructor (endpoints?: Array<string>, options?: TxDataOptions) {
     this.EventBus = new EventEmitter()
@@ -123,6 +125,9 @@ export class TxData {
       if (typeof options.OverallTimeoutMs === 'number' && options.OverallTimeoutMs >= 1) {
         this.LookupTimeoutMs = options.OverallTimeoutMs
       }
+      if (typeof options.AllowNoFullHistory === 'boolean') {
+        this.AllowNoFullHistory = options.AllowNoFullHistory
+      }
     }
 
     const minTimeoutMs = this.ConnectionAndQueryTimeoutMs * (this.Endpoints.length + 1)
@@ -149,13 +154,13 @@ export class TxData {
     }
   }
 
-  public async getOne(TxHash: string): Promise<ResolvedLookup> {
-    const tx = await this.get(TxHash)
+  public async getOne(TxHash: string, WaitForSeconds: number = 0): Promise<ResolvedLookup> {
+    const tx = await this.get(TxHash, WaitForSeconds)
     this.end()
     return tx
   }
 
-  public async get(TxHash: string): Promise<ResolvedLookup> {
+  public async get(TxHash: string, WaitForSeconds: number = 0): Promise<ResolvedLookup> {
     if (this.Ended) {
       throw this.GenerateError('OBJECT_IN_ENDED_STATE')
     }
@@ -167,14 +172,36 @@ export class TxData {
     }
 
     const getPromise: Promise<ResolvedLookup> = new Promise(async (resolve, reject) => {
-      const Timer = setTimeout(() => {
-        reject(this.GenerateError('MAX_LOOKUP_TIME_REACHED'))
-      }, this.LookupTimeoutMs)
+      let Timer: ReturnType<typeof setTimeout>
+      let WaitMode: boolean = false
+      let WaitModeFinish: Function
+
+      const setTimer = (SecondsAdded: number = 0): void => {
+        clearTimeout(Timer)
+        const timeoutMs = this.LookupTimeoutMs + SecondsAdded * 1000
+
+        log('Set Timeout Timer at (sec)', timeoutMs / 1000)
+
+        const TimedOut = () => {
+          if (WaitMode) {
+            WaitModeFinish()
+          } else {
+            reject(this.GenerateError('MAX_LOOKUP_TIME_REACHED'))
+          }
+        }
+
+        Timer = setTimeout(() => {
+          TimedOut()
+        }, timeoutMs)
+      }
+
+      setTimer()
 
       const cleanup = () => {
         clearTimeout(Timer)
         meta.resolved = true
         this.EventBus.removeListener('result', onTx)
+        this.EventBus.listeners('tx.' + TxHash).forEach(l => this.EventBus.removeListener('tx.' + TxHash, l as any))
       }
 
       const ResolveFormatted = (
@@ -182,12 +209,51 @@ export class TxData {
         resolvedBy: string,
         host: string
       ): void => {
-        cleanup()
-        const result = this.FormatResult(eventResult)
-        const balanceChanges = typeof (result as TxResult).meta !== 'undefined'
-          ? parseBalanceChanges((result as TxResult).meta)
-          : {}
-        resolve({result, resolvedBy, host, balanceChanges})
+        const finish = (customEventResult?: Tx, customHost?: string) => {
+          cleanup()
+
+          const result = this.FormatResult(customEventResult ? customEventResult : eventResult)
+          const balanceChanges = typeof (result as TxResult).meta !== 'undefined'
+            ? parseBalanceChanges((result as TxResult).meta)
+            : {}
+
+          resolve({
+            result: customEventResult?.result
+              ? {
+                ...(customEventResult.result as any)?.transaction,
+                meta: (customEventResult.result as any)?.meta,
+                validated: (customEventResult.result as any)?.validated,
+                ledger_index: (customEventResult.result as any)?.ledger_index,
+                inLedger: (customEventResult.result as any)?.ledger_index
+              }
+              : result,
+            resolvedBy: customHost ? 'asynchash' : resolvedBy,
+            host: customHost ? customHost : host,
+            balanceChanges
+          })
+        }
+
+        if ((eventResult as TxNotFound)?.error === 'txnNotFound' && WaitForSeconds > 0) {
+          // Not found
+          if (!WaitMode) {
+            log('TX not found on ledger, could still arrive, wait for # sec.:', WaitForSeconds, TxHash)
+
+            setTimer(WaitForSeconds)
+
+            WaitMode = true
+            WaitModeFinish = finish
+
+            this.EventBus.once('tx.' + TxHash, event => {
+              finish({
+                status: event.response.status,
+                type: event.response.type,
+                result: event.response as TxResult
+              }, event.url)
+            })
+          }
+        } else {
+          finish()
+        }
       }
 
       const onTx = (r: EmittedTxResult) => {
@@ -304,6 +370,7 @@ export class TxData {
         socket.onopen = () => {
           if (socket.readyState === socket.OPEN) {
             socket.send(JSON.stringify({command: 'server_info'}))
+            socket.send(JSON.stringify({command: 'subscribe', streams: ['transactions']}))
           }
         }
 
@@ -327,12 +394,18 @@ export class TxData {
             const response = JSON.parse(m.data.toString())
             if (socketMeta.ready) {
               this.EventBus.emit('xrpljson', response)
+
+              const txHash = (response as any)?.transaction?.hash
+              if ((response as any)?.validated && txHash) {
+                // log('Seen TX', txHash, 'emitted', 'tx.#')
+                this.EventBus.emit('tx.' + txHash, {response, url: socket.url})
+              }
             } else {
               if (typeof response?.result?.info?.complete_ledgers !== 'undefined') {
                 socketMeta.ready = true
                 const ledgerString = String(response?.result?.info?.complete_ledgers || '')
                 const isFullHistory = ledgerString.split(',').length < 2 && ledgerString.split('-')[0] === '32570'
-                if (!isFullHistory) {
+                if (!isFullHistory && !this.AllowNoFullHistory) {
                   logInvalid('Closed connection to ', socket.url, 'incomplete history:', ledgerString)
                   this.Endpoints[index] = ''
                   await socket.close()
