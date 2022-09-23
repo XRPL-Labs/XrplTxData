@@ -143,9 +143,9 @@ in formatted form: value decoded as NFT value (xls-14d) (when this applies) and 
     "status": "error",
     "type": "response"
   },
-  "resolvedBy": "generator",
+  "resolvedBy": "generator", // or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
   "host": "wss://s2.ripple.com/",
-  "balanceChanges": {, or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
+  "balanceChanges": { ... }
 }
 ```
 
@@ -206,9 +206,9 @@ in formatted form: value decoded as NFT value (xls-14d) (when this applies) and 
     "validated": true,
     ...
   },
-  "resolvedBy": "generator",
+  "resolvedBy": "generator", // or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
   "host": "wss://s2.ripple.com/",
-  "balanceChanges": , or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
+  "balanceChanges":
     "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq": [
       {
         "counterparty": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",
