@@ -63,6 +63,8 @@ txd.get('85E19A60511544759C3F6EF814EDCDDE606640991CDDE5409354D21112F91EAA', 20)
   })
 ```
 
+More info: https://xumm.readme.io/docs/secure-payment-verification#example-flow--code-using-the-xrpl-txdata-package-jsts
+
 #### Advanced options
 
 By default, these full history nodes will be used (in order):
@@ -141,9 +143,9 @@ in formatted form: value decoded as NFT value (xls-14d) (when this applies) and 
     "status": "error",
     "type": "response"
   },
-  "resolvedBy": "generator",
+  "resolvedBy": "generator", // or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
   "host": "wss://s2.ripple.com/",
-  "balanceChanges": {, or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
+  "balanceChanges": { ... }
 }
 ```
 
@@ -204,9 +206,9 @@ in formatted form: value decoded as NFT value (xls-14d) (when this applies) and 
     "validated": true,
     ...
   },
-  "resolvedBy": "generator",
+  "resolvedBy": "generator", // or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
   "host": "wss://s2.ripple.com/",
-  "balanceChanges": , or `"asynchash"` if resolved by waiting & monitoring the live ledger transaction stream
+  "balanceChanges":
     "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq": [
       {
         "counterparty": "rPdvC6ccq8hCdPKSPJkPmyZ4Mi1oG2FFkT",
