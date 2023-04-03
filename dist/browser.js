@@ -24009,11 +24009,11 @@ const debug_1 = require("debug");
 const os_1 = require("os");
 const events_1 = require("events");
 const balanceParser_1 = require("./ext-dependencies/balanceParser");
-const log = debug_1.debug("txdata");
-const logConnect = log.extend("connect");
-const logConnErr = log.extend("connect:error");
-const logResolve = log.extend("resolve");
-const logInvalid = log.extend("invalid");
+const log = debug_1.debug('txdata');
+const logConnect = log.extend('connect');
+const logConnErr = log.extend('connect:error');
+const logResolve = log.extend('resolve');
+const logInvalid = log.extend('invalid');
 var balanceParser_2 = require("./ext-dependencies/balanceParser");
 Object.defineProperty(exports, "parseBalanceChanges", { enumerable: true, get: function () { return balanceParser_2.parseBalanceChanges; } });
 const utils_1 = require("./ext-dependencies/utils");
@@ -24025,15 +24025,15 @@ class TxData {
         this.ReadyConnections = [];
         this.CommandId = 0;
         this.Endpoints = [
-            "wss://xrplcluster.com",
-            "wss://xrpl.link",
-            "wss://s2.ripple.com",
+            'wss://xrplcluster.com',
+            'wss://xrpl.link',
+            'wss://s2.ripple.com'
         ];
         this.ConnectionAndQueryTimeoutMs = 1250;
         this.LookupTimeoutMs = 10000;
         this.AllowNoFullHistory = false;
         this.EventBus = new events_1.EventEmitter();
-        log("Constructed");
+        log('Constructed');
         this.ParseEndpoints(endpoints);
         this.ParseOptions(options);
         return this;
@@ -24042,43 +24042,39 @@ class TxData {
      * Constructor helpers
      */
     ParseEndpoints(endpoints) {
-        if (typeof endpoints !== "undefined" &&
-            Array.isArray(endpoints) &&
-            endpoints.length > 0) {
+        if (typeof endpoints !== 'undefined' && Array.isArray(endpoints) && endpoints.length > 0) {
             const alternativeEndpoints = endpoints
-                .map((r) => {
-                return r.trim().replace(/^http/, "ws");
+                .map(r => {
+                return r.trim().replace(/^http/, 'ws');
             })
-                .filter((r) => {
+                .filter(r => {
                 return r.match(/^ws[s]{0,1}:\/\//);
             });
             if (alternativeEndpoints.length > 0) {
                 this.Endpoints = alternativeEndpoints;
             }
             else {
-                throw this.GenerateError("ENDPOINTS_INVALID");
+                throw this.GenerateError('ENDPOINTS_INVALID');
             }
         }
-        log("Endpoints", this.Endpoints);
+        log('Endpoints', this.Endpoints);
     }
     ParseOptions(options) {
-        if (typeof options === "object" && options !== null) {
-            if (typeof options.EndpointTimeoutMs === "number" &&
-                options.EndpointTimeoutMs >= 1) {
+        if (typeof options === 'object' && options !== null) {
+            if (typeof options.EndpointTimeoutMs === 'number' && options.EndpointTimeoutMs >= 1) {
                 this.ConnectionAndQueryTimeoutMs = options.EndpointTimeoutMs;
             }
-            if (typeof options.OverallTimeoutMs === "number" &&
-                options.OverallTimeoutMs >= 1) {
+            if (typeof options.OverallTimeoutMs === 'number' && options.OverallTimeoutMs >= 1) {
                 this.LookupTimeoutMs = options.OverallTimeoutMs;
             }
-            if (typeof options.AllowNoFullHistory === "boolean") {
+            if (typeof options.AllowNoFullHistory === 'boolean') {
                 this.AllowNoFullHistory = options.AllowNoFullHistory;
             }
         }
         const minTimeoutMs = this.ConnectionAndQueryTimeoutMs * (this.Endpoints.length + 1);
         if (this.LookupTimeoutMs < minTimeoutMs) {
             this.LookupTimeoutMs = minTimeoutMs;
-            logInvalid("Overall timeout updated to min. endpoint * perEndpointTO seconds:", this.LookupTimeoutMs / 1000);
+            logInvalid('Overall timeout updated to min. endpoint * perEndpointTO seconds:', this.LookupTimeoutMs / 1000);
         }
     }
     /**
@@ -24087,8 +24083,8 @@ class TxData {
     end() {
         if (!this.Ended) {
             this.Ended = true;
-            log("Ending!");
-            this.WsConnections.forEach((c) => {
+            log('Ending!');
+            this.WsConnections.forEach(c => {
                 c.close();
             });
             this.Endpoints = [];
@@ -24106,12 +24102,12 @@ class TxData {
     get(TxHash, WaitForSeconds = 0) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.Ended) {
-                throw this.GenerateError("OBJECT_IN_ENDED_STATE");
+                throw this.GenerateError('OBJECT_IN_ENDED_STATE');
             }
             const meta = {
                 attempts: 0,
                 connections: 0,
-                resolved: false,
+                resolved: false
             };
             const getPromise = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 var e_1, _a;
@@ -24122,13 +24118,13 @@ class TxData {
                 const setTimer = (SecondsAdded = 0) => {
                     clearTimeout(Timer);
                     const timeoutMs = this.LookupTimeoutMs + SecondsAdded * 1000;
-                    log("Set Timeout Timer at (sec)", timeoutMs / 1000);
+                    log('Set Timeout Timer at (sec)', timeoutMs / 1000);
                     const TimedOut = () => {
                         if (WaitMode) {
                             WaitModeFinish();
                         }
                         else {
-                            reject(this.GenerateError("MAX_LOOKUP_TIME_REACHED"));
+                            reject(this.GenerateError('MAX_LOOKUP_TIME_REACHED'));
                         }
                     };
                     Timer = setTimeout(() => {
@@ -24139,8 +24135,8 @@ class TxData {
                 const cleanup = () => {
                     clearTimeout(Timer);
                     meta.resolved = true;
-                    this.EventBus.removeListener("result", onTx);
-                    this.EventBus.listeners("tx." + TxHash).forEach((l) => this.EventBus.removeListener("tx." + TxHash, l));
+                    this.EventBus.removeListener('result', onTx);
+                    this.EventBus.listeners('tx.' + TxHash).forEach(l => this.EventBus.removeListener('tx.' + TxHash, l));
                 };
                 const ResolveFormatted = (eventResult, resolvedBy, host) => {
                     var _a;
@@ -24148,29 +24144,28 @@ class TxData {
                         var _a, _b, _c, _d, _e;
                         cleanup();
                         const result = this.FormatResult(customEventResult ? customEventResult : eventResult);
-                        const balanceChanges = typeof result.meta !== "undefined"
+                        const balanceChanges = typeof result.meta !== 'undefined'
                             ? balanceParser_1.parseBalanceChanges(result.meta)
                             : {};
                         resolve({
                             result: (customEventResult === null || customEventResult === void 0 ? void 0 : customEventResult.result) ? Object.assign(Object.assign({}, (_a = customEventResult.result) === null || _a === void 0 ? void 0 : _a.transaction), { meta: (_b = customEventResult.result) === null || _b === void 0 ? void 0 : _b.meta, validated: (_c = customEventResult.result) === null || _c === void 0 ? void 0 : _c.validated, ledger_index: (_d = customEventResult.result) === null || _d === void 0 ? void 0 : _d.ledger_index, inLedger: (_e = customEventResult.result) === null || _e === void 0 ? void 0 : _e.ledger_index }) : result,
-                            resolvedBy: customHost ? "asynchash" : resolvedBy,
+                            resolvedBy: customHost ? 'asynchash' : resolvedBy,
                             host: customHost ? customHost : host,
-                            balanceChanges,
+                            balanceChanges
                         });
                     };
-                    if (((_a = eventResult) === null || _a === void 0 ? void 0 : _a.error) === "txnNotFound" &&
-                        WaitForSeconds > 0) {
+                    if (((_a = eventResult) === null || _a === void 0 ? void 0 : _a.error) === 'txnNotFound' && WaitForSeconds > 0) {
                         // Not found
                         if (!WaitMode) {
-                            log("TX not found on ledger, could still arrive, wait for # sec.:", WaitForSeconds, TxHash);
+                            log('TX not found on ledger, could still arrive, wait for # sec.:', WaitForSeconds, TxHash);
                             setTimer(WaitForSeconds);
                             WaitMode = true;
                             WaitModeFinish = finish;
-                            this.EventBus.once("tx." + TxHash, (event) => {
+                            this.EventBus.once('tx.' + TxHash, event => {
                                 finish({
                                     status: event.response.status,
                                     type: event.response.type,
-                                    result: event.response,
+                                    result: event.response
                                 }, event.url);
                             });
                         }
@@ -24181,15 +24176,14 @@ class TxData {
                 };
                 const onTx = (r) => {
                     var _a, _b;
-                    if (!meta.resolved &&
-                        r.txHash === TxHash &&
-                        typeof (r === null || r === void 0 ? void 0 : r.result) === "object" &&
-                        (((_a = this.FormatResult(r.result)) === null || _a === void 0 ? void 0 : _a.meta) || ((_b = this.FormatResult(r.result)) === null || _b === void 0 ? void 0 : _b.error))) {
-                        this.EventBus.off("result", onTx);
-                        ResolveFormatted(r.result, "emitter", r.host);
+                    if (!meta.resolved && r.txHash === TxHash &&
+                        typeof (r === null || r === void 0 ? void 0 : r.result) === 'object' &&
+                        ((((_a = this.FormatResult(r.result)) === null || _a === void 0 ? void 0 : _a.meta) || ((_b = this.FormatResult(r.result)) === null || _b === void 0 ? void 0 : _b.error)))) {
+                        this.EventBus.off('result', onTx);
+                        ResolveFormatted(r.result, 'emitter', r.host);
                     }
                 };
-                this.EventBus.on("result", onTx);
+                this.EventBus.on('result', onTx);
                 try {
                     for (var _d = __asyncValues(this.ConnectAndQuery(TxHash)), _e; _e = yield _d.next(), !_e.done;) {
                         const val = _e.value;
@@ -24198,18 +24192,18 @@ class TxData {
                         }
                         meta.attempts++;
                         meta.connections++;
-                        if (typeof val.socket !== "boolean") {
+                        if (typeof val.socket !== 'boolean') {
                             if (!meta.resolved &&
                                 val.socket.readyState === val.socket.OPEN &&
-                                typeof (val === null || val === void 0 ? void 0 : val.result) === "object" &&
-                                (((_b = this.FormatResult(val.result)) === null || _b === void 0 ? void 0 : _b.meta) || ((_c = this.FormatResult(val.result)) === null || _c === void 0 ? void 0 : _c.error))) {
-                                ResolveFormatted(val.result, "generator", val.socket.url);
+                                typeof (val === null || val === void 0 ? void 0 : val.result) === 'object' &&
+                                ((((_b = this.FormatResult(val.result)) === null || _b === void 0 ? void 0 : _b.meta) || ((_c = this.FormatResult(val.result)) === null || _c === void 0 ? void 0 : _c.error)))) {
+                                ResolveFormatted(val.result, 'generator', val.socket.url);
                                 break;
                             }
                         }
                         else {
                             // URL is empty if endpoint is defunct (unreachable / not sane (non-FH))
-                            if (val.url !== "") {
+                            if (val.url !== '') {
                                 logResolve(`reason @ ${val.url} =`, String(val === null || val === void 0 ? void 0 : val.resolveReason).toUpperCase());
                             }
                             else {
@@ -24227,14 +24221,12 @@ class TxData {
                     finally { if (e_1) throw e_1.error; }
                 }
                 log(`Getting ${TxHash} done, attempts =`, meta.attempts);
-                const allClosedOrClosing = this.WsConnections.filter((c) => {
+                const allClosedOrClosing = this.WsConnections.filter(c => {
                     return c.readyState === c.CLOSED || c.readyState === c.CLOSING;
                 }).length === this.Endpoints.length;
-                if (!meta.resolved &&
-                    meta.connections === this.Endpoints.length &&
-                    allClosedOrClosing) {
+                if (!meta.resolved && meta.connections === this.Endpoints.length && allClosedOrClosing) {
                     // log({reject: true, meta, allClosedOrClosing})
-                    reject(this.GenerateError("ALL_CONNECTIONS_FAILED"));
+                    reject(this.GenerateError('ALL_CONNECTIONS_FAILED'));
                 }
             }));
             return getPromise;
@@ -24245,7 +24237,7 @@ class TxData {
      */
     FormatResult(result) {
         delete result.id;
-        if (typeof result.result !== "undefined") {
+        if (typeof result.result !== 'undefined') {
             return result.result;
         }
         return result;
@@ -24253,20 +24245,20 @@ class TxData {
     GenerateError(code) {
         let msg;
         switch (code) {
-            case "OBJECT_IN_ENDED_STATE":
-                msg = "TxData object ended (.getOne() / .end() called)";
+            case 'OBJECT_IN_ENDED_STATE':
+                msg = 'TxData object ended (.getOne() / .end() called)';
                 break;
-            case "ENDPOINTS_INVALID":
-                msg = "All endpoints are invalid";
+            case 'ENDPOINTS_INVALID':
+                msg = 'All endpoints are invalid';
                 break;
-            case "ALL_CONNECTIONS_FAILED":
+            case 'ALL_CONNECTIONS_FAILED':
                 msg = `All endpoints are offline (or don't provide full history)`;
                 break;
-            case "MAX_LOOKUP_TIME_REACHED":
+            case 'MAX_LOOKUP_TIME_REACHED':
                 msg = `Max. lookup time (for all endpoints) reached without receiving a valid response`;
                 break;
             default:
-                msg = "Unknown exception";
+                msg = 'Unknown exception';
         }
         const e = new Error(msg);
         e.name = code;
@@ -24275,43 +24267,38 @@ class TxData {
     Connect(index = 0) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            if (typeof this.ReadyConnections[index] === "undefined" &&
-                this.Endpoints[index] !== "") {
+            if (typeof this.ReadyConnections[index] === 'undefined' && this.Endpoints[index] !== '') {
                 logConnect(this.Endpoints[index]);
-                const headers = typeof process === "object"
-                    ? { "User-Agent": "XrplTxData/" + os_1.hostname() }
+                const headers = typeof process === 'object'
+                    ? { 'User-Agent': 'XrplTxData/' + os_1.hostname() }
                     : undefined;
-                const socket = typeof ((_a = global) === null || _a === void 0 ? void 0 : _a.MockedWebSocket) !== "undefined" &&
-                    typeof jest !== "undefined"
-                    ? new ((_b = global) === null || _b === void 0 ? void 0 : _b.MockedWebSocket)("ws://txdata.local")
+                const socket = typeof ((_a = global) === null || _a === void 0 ? void 0 : _a.MockedWebSocket) !== 'undefined' && typeof jest !== 'undefined'
+                    ? new ((_b = global) === null || _b === void 0 ? void 0 : _b.MockedWebSocket)('ws://txdata.local')
                     : new websocket_1.w3cwebsocket(this.Endpoints[index], undefined, // Protocols
                     undefined, // Origin
                     headers // Http Headers
                     );
                 this.WsConnections[index] = socket;
                 const socketMeta = {
-                    ready: false,
+                    ready: false
                 };
-                this.ReadyConnections[index] = new Promise((resolve) => {
+                this.ReadyConnections[index] = new Promise(resolve => {
                     socket.onopen = () => {
                         if (socket.readyState === socket.OPEN) {
-                            socket.send(JSON.stringify({ command: "server_info" }));
-                            socket.send(JSON.stringify({
-                                command: "subscribe",
-                                streams: ["transactions"],
-                            }));
+                            socket.send(JSON.stringify({ command: 'server_info' }));
+                            socket.send(JSON.stringify({ command: 'subscribe', streams: ['transactions'] }));
                         }
                     };
                     // socket.onclose = () => {}
-                    socket.onerror = (e) => {
+                    socket.onerror = e => {
                         if (!this.Ended) {
                             logConnErr({
                                 url: socket.url,
                                 type: e === null || e === void 0 ? void 0 : e.name,
                                 message: e === null || e === void 0 ? void 0 : e.message,
-                                error: e === null || e === void 0 ? void 0 : e.stack,
+                                error: e === null || e === void 0 ? void 0 : e.stack
                             });
-                            this.Endpoints[index] = "";
+                            this.Endpoints[index] = '';
                         }
                         resolve(socket);
                     };
@@ -24320,35 +24307,30 @@ class TxData {
                         try {
                             const response = JSON.parse(m.data.toString());
                             if (socketMeta.ready) {
-                                if (typeof ((_b = (_a = response) === null || _a === void 0 ? void 0 : _a.transaction) === null || _b === void 0 ? void 0 : _b.validated) ===
-                                    "undefined" || ((_d = (_c = response) === null || _c === void 0 ? void 0 : _c.transaction) === null || _d === void 0 ? void 0 : _d.validated)) {
-                                    this.EventBus.emit("xrpljson", response);
+                                if (typeof ((_b = (_a = response) === null || _a === void 0 ? void 0 : _a.transaction) === null || _b === void 0 ? void 0 : _b.validated) === 'undefined' || ((_d = (_c = response) === null || _c === void 0 ? void 0 : _c.transaction) === null || _d === void 0 ? void 0 : _d.validated)) {
+                                    this.EventBus.emit('xrpljson', response);
                                 }
                                 else {
-                                    log("Ignore xrpljson, validated present but false");
+                                    log('Ignore xrpljson, validated present but false');
                                 }
                                 const txHash = (_f = (_e = response) === null || _e === void 0 ? void 0 : _e.transaction) === null || _f === void 0 ? void 0 : _f.hash;
                                 if (((_g = response) === null || _g === void 0 ? void 0 : _g.validated) && txHash) {
                                     // log('Seen TX', txHash, 'emitted', 'tx.#')
-                                    this.EventBus.emit("tx." + txHash, {
-                                        response,
-                                        url: socket.url,
-                                    });
+                                    this.EventBus.emit('tx.' + txHash, { response, url: socket.url });
                                 }
                             }
                             else {
-                                if (typeof ((_j = (_h = response === null || response === void 0 ? void 0 : response.result) === null || _h === void 0 ? void 0 : _h.info) === null || _j === void 0 ? void 0 : _j.complete_ledgers) !== "undefined") {
+                                if (typeof ((_j = (_h = response === null || response === void 0 ? void 0 : response.result) === null || _h === void 0 ? void 0 : _h.info) === null || _j === void 0 ? void 0 : _j.complete_ledgers) !== 'undefined') {
                                     socketMeta.ready = true;
-                                    const ledgerString = String(((_l = (_k = response === null || response === void 0 ? void 0 : response.result) === null || _k === void 0 ? void 0 : _k.info) === null || _l === void 0 ? void 0 : _l.complete_ledgers) || "");
-                                    const isFullHistory = ledgerString.split(",").length < 2 &&
-                                        ledgerString.split("-")[0] === "32570";
+                                    const ledgerString = String(((_l = (_k = response === null || response === void 0 ? void 0 : response.result) === null || _k === void 0 ? void 0 : _k.info) === null || _l === void 0 ? void 0 : _l.complete_ledgers) || '');
+                                    const isFullHistory = ledgerString.split(',').length < 2 && ledgerString.split('-')[0] === '32570';
                                     if (!isFullHistory && !this.AllowNoFullHistory) {
-                                        logInvalid("Closed connection to ", socket.url, "incomplete history:", ledgerString);
-                                        this.Endpoints[index] = "";
+                                        logInvalid('Closed connection to ', socket.url, 'incomplete history:', ledgerString);
+                                        this.Endpoints[index] = '';
                                         yield socket.close();
                                     }
                                     else {
-                                        logConnect("Ready:", socket.url);
+                                        logConnect('Ready:', socket.url);
                                     }
                                     resolve(socket);
                                 }
@@ -24375,35 +24357,25 @@ class TxData {
                     const cancel = (resolveReason) => {
                         if (!resolved) {
                             clearTimeout(timeout);
-                            resolve({
-                                socket: false,
-                                result: false,
-                                resolveReason,
-                                url: this.Endpoints[i - 1],
-                            });
+                            resolve({ socket: false, result: false, resolveReason, url: this.Endpoints[i - 1] });
                             resolved = true;
                         }
                     };
                     timeout = setTimeout(() => {
-                        cancel("timed out");
+                        cancel('timed out');
                     }, this.ConnectionAndQueryTimeoutMs);
                     const socket = yield this.Connect(i - 1);
                     if (socket.readyState !== socket.OPEN) {
-                        cancel("resolved non-open");
+                        cancel('resolved non-open');
                     }
                     const result = yield this.QueryConnection(socket, txHash);
                     // Allow the generator to yield
                     process.nextTick(() => {
-                        this.EventBus.emit("result", { txHash, result, host: socket.url });
+                        this.EventBus.emit('result', { txHash, result, host: socket.url });
                     });
                     if (!resolved) {
                         clearTimeout(timeout);
-                        resolve({
-                            socket,
-                            result,
-                            resolveReason: "results",
-                            url: this.Endpoints[i - 1],
-                        });
+                        resolve({ socket, result, resolveReason: 'results', url: this.Endpoints[i - 1] });
                     }
                 }))));
             }
@@ -24417,18 +24389,18 @@ class TxData {
             // log({Get: TxHash, Id: id, Url: connection.url})
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 if (connection.readyState === connection.OPEN) {
-                    connection.send(JSON.stringify({ id, command: "tx", transaction: TxHash }));
+                    connection.send(JSON.stringify({ id, command: 'tx', transaction: TxHash }));
                     const onTx = (r) => {
-                        if (typeof r.id !== "undefined") {
+                        if (typeof r.id !== 'undefined') {
                             if (r.id === id) {
                                 process.nextTick(() => {
-                                    this.EventBus.removeListener("xrpljson", onTx);
+                                    this.EventBus.removeListener('xrpljson', onTx);
                                 });
                                 return resolve(r);
                             }
                         }
                     };
-                    this.EventBus.on("xrpljson", onTx);
+                    this.EventBus.on('xrpljson', onTx);
                 }
             }));
         });
