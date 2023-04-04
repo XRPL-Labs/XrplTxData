@@ -2,6 +2,8 @@
 
 ### `xrpl-txdata`: Fetch XRPL transaction data (auto failover)
 
+# ⚠️ WARNING! PLEASE UPDATE TO THE LATEST VERSION (1.2.1) - previous versions have a bug resulting in sometimes returning UNVALIDATED TRANSACTIONS (without metadata, and may not be included in the closed ledger).
+
 This lib. allows you to fetch XRP ledger transaction outcome from a number of (full history) XRP ledger nodes. This lib. will automatically setup connections when fetching from a selected node takes too long. The first (sane) reply will be returned.
 
 This lib. will get you the **fastest response possible** while setting up the **lowest amount of WebSocket connections** to full history XRPL nodes possible.
