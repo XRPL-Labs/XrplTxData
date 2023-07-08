@@ -495,13 +495,15 @@ export class TxData {
         connection.send(JSON.stringify({id, command: 'tx', transaction: TxHash}))
 
         const onTx = (r: Tx | TxNotFound) => {
-          if (typeof r.id !== 'undefined') {
-            if (r.id === id) {
-              process.nextTick(() => {
-                this.EventBus.removeListener('xrpljson', onTx)
-              })
-              return resolve(r)
-            }
+          if (
+            (r?.id === id || (r as any)?.transaction?.hash === TxHash)
+            &&
+            ((r as any)?.result?.validated || (r as any)?.validated)
+          ) {
+            process.nextTick(() => {
+              this.EventBus.removeListener('xrpljson', onTx)
+            })
+            return resolve(r)
           }
         }
 
