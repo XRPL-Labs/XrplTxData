@@ -1,6 +1,6 @@
 {
   "name": "xrpl-txdata",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "description": "Fetch XRPL transaction by hash (+ meta & balances), awaits if required",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
