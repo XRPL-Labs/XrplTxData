@@ -24391,13 +24391,14 @@ class TxData {
                 if (connection.readyState === connection.OPEN) {
                     connection.send(JSON.stringify({ id, command: 'tx', transaction: TxHash }));
                     const onTx = (r) => {
-                        if (typeof r.id !== 'undefined') {
-                            if (r.id === id) {
-                                process.nextTick(() => {
-                                    this.EventBus.removeListener('xrpljson', onTx);
-                                });
-                                return resolve(r);
-                            }
+                        var _a, _b, _c, _d, _e;
+                        if (((r === null || r === void 0 ? void 0 : r.id) === id || ((_b = (_a = r) === null || _a === void 0 ? void 0 : _a.transaction) === null || _b === void 0 ? void 0 : _b.hash) === TxHash)
+                            &&
+                                (((_d = (_c = r) === null || _c === void 0 ? void 0 : _c.result) === null || _d === void 0 ? void 0 : _d.validated) || ((_e = r) === null || _e === void 0 ? void 0 : _e.validated))) {
+                            process.nextTick(() => {
+                                this.EventBus.removeListener('xrpljson', onTx);
+                            });
+                            return resolve(r);
                         }
                     };
                     this.EventBus.on('xrpljson', onTx);

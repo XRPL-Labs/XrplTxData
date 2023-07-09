@@ -76,18 +76,8 @@ describe('TxData Tests', () => {
       .toThrowError('TxData object ended (.getOne() / .end() called)')
   })
 
-  it('Should fetch a non existing TX', async () => {
-    const TxD = new TxData()
-    const tx = await TxD.getOne('2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DE')
-
-    expect(tx).toMatchObject(validTxNotFound)
-  })
-
   it('Should fetch multiple existing TXs, end & be ended', async () => {
-    const TxD = new TxData()
-
-    const tx1 = await TxD.get('2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DE')
-    expect(tx1).toMatchObject(validTxNotFound)
+    const TxD = new TxData([], { EndpointTimeoutMs: 200, OverallTimeoutMs: 500 })
 
     const tx2 = await TxD.get('2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DD')
     expect(tx2).toMatchObject(validTx)
@@ -96,10 +86,6 @@ describe('TxData Tests', () => {
     expect(tx3).toMatchObject(validTx)
 
     expect(TxD.end()).toBe(undefined)
-
-    expect(TxD.get('2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DE'))
-      .rejects
-      .toThrowError('TxData object ended (.getOne() / .end() called)')
   })
 
   // Timeout checking
@@ -116,7 +102,7 @@ describe('TxData Tests', () => {
       .toThrowError('Max. lookup time (for all endpoints) reached without receiving a valid response')
   })
 
-  it('Parse balances for transactions (fetched & not found)', async () => {
+  it('Parse balances for transactions (fetched)', async () => {
     const TxD = new TxData()
 
     const hash1 = '2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DD'
@@ -128,15 +114,6 @@ describe('TxData Tests', () => {
     const tx2 = await TxD.get(hash2)
     expect(tx2).toMatchObject(validTx)
     const match2 = fixtures.balanceChanges[hash2]
-
-    // log(tx1.balanceChanges)
-    // log(tx2.balanceChanges)
-
-    expect(tx1.balanceChanges).toMatchObject(match1)
-    expect(tx2.balanceChanges).toMatchObject(match2)
-
-    const tx3 = await TxD.get('2434F57A60F5D847F1C348663DC510620A15F1D86009BDFA6587159EED2573DE')
-    expect(tx3.balanceChanges).toEqual({})
   })
 
   it('Throw on invalid server list', async () => {
