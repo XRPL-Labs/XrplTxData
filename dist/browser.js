@@ -24389,7 +24389,11 @@ class TxData {
             // log({Get: TxHash, Id: id, Url: connection.url})
             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                 if (connection.readyState === connection.OPEN) {
-                    connection.send(JSON.stringify({ id, command: 'tx', transaction: TxHash }));
+                    connection.send(JSON.stringify({
+                        id,
+                        command: 'tx',
+                        [TxHash.length > 16 ? 'transaction' : 'ctid']: TxHash
+                    }));
                     const onTx = (r) => {
                         var _a, _b, _c, _d, _e;
                         if (((r === null || r === void 0 ? void 0 : r.id) === id || ((_b = (_a = r) === null || _a === void 0 ? void 0 : _a.transaction) === null || _b === void 0 ? void 0 : _b.hash) === TxHash)
