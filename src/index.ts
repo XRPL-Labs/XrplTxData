@@ -492,7 +492,11 @@ export class TxData {
 
     return new Promise(async resolve => {
       if (connection.readyState === connection.OPEN) {
-        connection.send(JSON.stringify({id, command: 'tx', transaction: TxHash}))
+        connection.send(JSON.stringify({
+          id,
+          command: 'tx',
+          [TxHash.length > 16 ? 'transaction' : 'ctid']: TxHash
+        }))
 
         const onTx = (r: Tx | TxNotFound) => {
           if (
