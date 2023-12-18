@@ -200,8 +200,8 @@ export class TxData {
       const cleanup = () => {
         clearTimeout(Timer)
         meta.resolved = true
-        this.EventBus.removeListener('result', onTx)
-        this.EventBus.listeners('tx.' + TxHash).forEach(l => this.EventBus.removeListener('tx.' + TxHash, l as any))
+        this?.EventBus?.removeListener('result', onTx)
+        this.EventBus.listeners('tx.' + TxHash).forEach(l => this?.EventBus?.removeListener('tx.' + TxHash, l as any))
       }
 
       const ResolveFormatted = (
@@ -262,7 +262,7 @@ export class TxData {
           typeof r?.result === 'object' &&
           (((this.FormatResult(r.result) as any)?.meta || (this.FormatResult(r.result) as any)?.error))
         ) {
-          this.EventBus.off('result', onTx)
+          this?.EventBus?.removeListener('result', onTx)
           ResolveFormatted(r.result, 'emitter', r.host)
         }
       }
@@ -505,7 +505,7 @@ export class TxData {
             ((r as any)?.result?.validated || (r as any)?.validated)
           ) {
             process.nextTick(() => {
-              this.EventBus.removeListener('xrpljson', onTx)
+              this?.EventBus?.removeListener('xrpljson', onTx)
             })
             return resolve(r)
           }
