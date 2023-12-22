@@ -2,7 +2,7 @@
 
 ### `xrpl-txdata`: Fetch XRPL transaction data (auto failover)
 
-# ⚠️ WARNING! PLEASE UPDATE TO THE LATEST VERSION (1.2.3) - previous versions have a bug resulting in sometimes returning UNVALIDATED TRANSACTIONS (without metadata, and may not be included in the closed ledger).
+**⚠️ WARNING! Versions before 1.2.3 are vulnerable to returning unvalidated transactions. Please update!**
 
 ---
 
@@ -76,6 +76,12 @@ By default, these full history nodes will be used (in order):
 1. `wss://xrplcluster.com` ([more info](https://xrplcluster.com))
 2. `wss://xrpl.link` (fallback endpoint for `wss://xrplcluster.com`)
 3. `wss://s2.ripple.com`
+
+##### Xahau
+
+For Xahau you can use `wss://xahau.network`
+
+#### Timeouts
 
 The default timeout configuration will:
 
