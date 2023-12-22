@@ -77,6 +77,12 @@ By default, these full history nodes will be used (in order):
 2. `wss://xrpl.link` (fallback endpoint for `wss://xrplcluster.com`)
 3. `wss://s2.ripple.com`
 
+##### Xahau
+
+For Xahau you can use `wss://xahau.network`
+
+#### Timeouts
+
 The default timeout configuration will:
 
 - Try to connect, query & get a response (per tx) within 1250ms (1.25 seconds) before trying the next node
