@@ -21,7 +21,7 @@ const parseValue = (value) => {
         : value;
     return new bignumber_js_1.BigNumber(v);
 };
-const parseXRPQuantity = (node, valueParser) => {
+const parseXRPQuantity = (node, valueParser, nativeAsset = 'XRP') => {
     const value = valueParser(node);
     if (value === null) {
         return null;
@@ -30,7 +30,7 @@ const parseXRPQuantity = (node, valueParser) => {
         address: node.finalFields.Account || node.newFields.Account,
         balance: {
             counterparty: '',
-            currency: 'XRP',
+            currency: nativeAsset.toUpperCase(),
             value: utils_1.dropsToXRP(value).toString()
         }
     };
@@ -62,10 +62,10 @@ const parseTrustlineQuantity = (node, valueParser) => {
     };
     return [result, flipTrustlinePerspective(result)];
 };
-const parseQuantities = (metadata, valueParser) => {
+const parseQuantities = (metadata, valueParser, nativeAsset = 'XRP') => {
     const values = utils_1.normalizeNodes(metadata).map((node) => {
         if (node.entryType === 'AccountRoot') {
-            return [parseXRPQuantity(node, valueParser)];
+            return [parseXRPQuantity(node, valueParser, nativeAsset.toUpperCase())];
         }
         else if (node.entryType === 'RippleState') {
             return parseTrustlineQuantity(node, valueParser);
@@ -74,7 +74,7 @@ const parseQuantities = (metadata, valueParser) => {
     });
     return groupByAddress(lodash_1.compact(lodash_1.flatten(values)));
 };
-exports.parseBalanceChanges = (metadata) => {
+exports.parseBalanceChanges = (metadata, nativeAsset = 'XRP') => {
     const quantities = parseQuantities(metadata, (node) => {
         let value = null;
         if (node.newFields.Balance) {
@@ -84,7 +84,7 @@ exports.parseBalanceChanges = (metadata) => {
             value = parseValue(node.finalFields.Balance).minus(parseValue(node.previousFields.Balance));
         }
         return value === null ? null : value.isZero() ? null : value;
-    });
+    }, nativeAsset.toUpperCase());
     const formatted = Object.keys(quantities).reduce((a, b) => {
         const formattedQuantities = quantities[b].map(q => {
             return Object.assign(q, {
@@ -92,9 +92,9 @@ exports.parseBalanceChanges = (metadata) => {
                     value: q.counterparty !== '' && q.value.match(/e/)
                         ? String(utils_1.xrplValueToNft(q.value))
                         : q.value,
-                    currency: q.currency === 'XRP' && q.counterparty === ''
-                        ? 'XRP'
-                        : utils_1.currencyCodeFormat(q.currency)
+                    currency: q.currency === nativeAsset.toUpperCase() && q.counterparty === ''
+                        ? nativeAsset.toUpperCase()
+                        : utils_1.currencyCodeFormat(q.currency, undefined, nativeAsset.toUpperCase())
                 }
             });
         });
@@ -127,8 +127,8 @@ exports.normalizeNodes = (metadata) => {
 // Supports regular 3 char currency code
 // Supports HEX currency code
 // Supports HEX currency code based on XLS15d
-exports.currencyCodeFormat = (string, maxLength = 12) => {
-    if (string.length === 3 && string.trim().toLowerCase() !== 'xrp') {
+exports.currencyCodeFormat = (string, maxLength = 12, nativeAsset = 'XRP') => {
+    if (string.length === 3 && string.trim().toLowerCase() !== nativeAsset.toLowerCase()) {
         // Normal currency code
         return string.trim();
     }
@@ -137,12 +137,12 @@ exports.currencyCodeFormat = (string, maxLength = 12) => {
         const hex = string.toString().replace(/(00)+$/g, '');
         if (hex.startsWith('02')) {
             const xlf15d = Buffer.from(hex, 'hex').slice(8).toString('utf-8').slice(0, maxLength).trim();
-            if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== 'xrp') {
+            if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== nativeAsset.toLowerCase()) {
                 return xlf15d;
             }
         }
         const decodedHex = Buffer.from(hex, 'hex').toString('utf-8').slice(0, maxLength).trim();
-        if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== 'xrp') {
+        if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== nativeAsset.toLowerCase()) {
             return decodedHex;
         }
     }
@@ -171,7 +171,7 @@ exports.xrplValueToNft = (value) => {
         return false;
     }
     let z = '';
-    const sign = value < 0 ? '-' : '';
+    const sign = Number(value) < 0 ? '-' : '';
     const str = data[0].replace('.', '');
     let mag = Number(data[1]) + 1;
     if (mag < 0) {
@@ -24032,6 +24032,7 @@ class TxData {
         this.ConnectionAndQueryTimeoutMs = 1250;
         this.LookupTimeoutMs = 10000;
         this.AllowNoFullHistory = false;
+        this.NativeAsset = 'XRP';
         this.EventBus = new events_1.EventEmitter();
         log('Constructed');
         this.ParseEndpoints(endpoints);
@@ -24069,6 +24070,9 @@ class TxData {
             }
             if (typeof options.AllowNoFullHistory === 'boolean') {
                 this.AllowNoFullHistory = options.AllowNoFullHistory;
+            }
+            if (typeof options.NativeAsset === 'string') {
+                this.NativeAsset = options.NativeAsset.trim().toUpperCase();
             }
         }
         const minTimeoutMs = this.ConnectionAndQueryTimeoutMs * (this.Endpoints.length + 1);
@@ -24133,10 +24137,11 @@ class TxData {
                 };
                 setTimer();
                 const cleanup = () => {
+                    var _a;
                     clearTimeout(Timer);
                     meta.resolved = true;
-                    this.EventBus.removeListener('result', onTx);
-                    this.EventBus.listeners('tx.' + TxHash).forEach(l => this.EventBus.removeListener('tx.' + TxHash, l));
+                    (_a = this === null || this === void 0 ? void 0 : this.EventBus) === null || _a === void 0 ? void 0 : _a.removeListener('result', onTx);
+                    this.EventBus.listeners('tx.' + TxHash).forEach(l => { var _a; return (_a = this === null || this === void 0 ? void 0 : this.EventBus) === null || _a === void 0 ? void 0 : _a.removeListener('tx.' + TxHash, l); });
                 };
                 const ResolveFormatted = (eventResult, resolvedBy, host) => {
                     var _a;
@@ -24145,7 +24150,7 @@ class TxData {
                         cleanup();
                         const result = this.FormatResult(customEventResult ? customEventResult : eventResult);
                         const balanceChanges = typeof result.meta !== 'undefined'
-                            ? balanceParser_1.parseBalanceChanges(result.meta)
+                            ? balanceParser_1.parseBalanceChanges(result.meta, this.NativeAsset)
                             : {};
                         resolve({
                             result: (customEventResult === null || customEventResult === void 0 ? void 0 : customEventResult.result) ? Object.assign(Object.assign({}, (_a = customEventResult.result) === null || _a === void 0 ? void 0 : _a.transaction), { meta: (_b = customEventResult.result) === null || _b === void 0 ? void 0 : _b.meta, validated: (_c = customEventResult.result) === null || _c === void 0 ? void 0 : _c.validated, ledger_index: (_d = customEventResult.result) === null || _d === void 0 ? void 0 : _d.ledger_index, inLedger: (_e = customEventResult.result) === null || _e === void 0 ? void 0 : _e.ledger_index }) : result,
@@ -24175,11 +24180,11 @@ class TxData {
                     }
                 };
                 const onTx = (r) => {
-                    var _a, _b;
+                    var _a, _b, _c;
                     if (!meta.resolved && r.txHash === TxHash &&
                         typeof (r === null || r === void 0 ? void 0 : r.result) === 'object' &&
                         ((((_a = this.FormatResult(r.result)) === null || _a === void 0 ? void 0 : _a.meta) || ((_b = this.FormatResult(r.result)) === null || _b === void 0 ? void 0 : _b.error)))) {
-                        this.EventBus.off('result', onTx);
+                        (_c = this === null || this === void 0 ? void 0 : this.EventBus) === null || _c === void 0 ? void 0 : _c.removeListener('result', onTx);
                         ResolveFormatted(r.result, 'emitter', r.host);
                     }
                 };
@@ -24400,7 +24405,8 @@ class TxData {
                             &&
                                 (((_d = (_c = r) === null || _c === void 0 ? void 0 : _c.result) === null || _d === void 0 ? void 0 : _d.validated) || ((_e = r) === null || _e === void 0 ? void 0 : _e.validated))) {
                             process.nextTick(() => {
-                                this.EventBus.removeListener('xrpljson', onTx);
+                                var _a;
+                                (_a = this === null || this === void 0 ? void 0 : this.EventBus) === null || _a === void 0 ? void 0 : _a.removeListener('xrpljson', onTx);
                             });
                             return resolve(r);
                         }
