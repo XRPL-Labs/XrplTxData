@@ -28,8 +28,8 @@ export const normalizeNodes = (metadata: any): any => {
 // Supports regular 3 char currency code
 // Supports HEX currency code
 // Supports HEX currency code based on XLS15d
-export const currencyCodeFormat = (string: string, maxLength = 12): string => {
-  if(string.length === 3 && string.trim().toLowerCase() !== 'xrp') {
+export const currencyCodeFormat = (string: string, maxLength = 12, nativeAsset = 'XRP'): string => {
+  if(string.length === 3 && string.trim().toLowerCase() !== nativeAsset.toLowerCase()) {
     // Normal currency code
     return string.trim()
   }
@@ -38,12 +38,12 @@ export const currencyCodeFormat = (string: string, maxLength = 12): string => {
     const hex = string.toString().replace(/(00)+$/g, '')
     if (hex.startsWith('02')) {
       const xlf15d = Buffer.from(hex, 'hex').slice(8).toString('utf-8').slice(0, maxLength).trim()
-      if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== 'xrp') {
+      if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== nativeAsset.toLowerCase()) {
         return xlf15d
       }
     }
     const decodedHex = Buffer.from(hex, 'hex').toString('utf-8').slice(0, maxLength).trim()
-    if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== 'xrp') {
+    if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== nativeAsset.toLowerCase()) {
       return decodedHex
     }
   }
@@ -78,7 +78,7 @@ export const xrplValueToNft = (value: string | number): number | boolean => {
   }
 
   let z = ''
-  const sign = value < 0 ? '-' : ''
+  const sign = Number(value) < 0 ? '-' : ''
   const str = data[0].replace('.', '')
   let mag = Number(data[1]) + 1
 

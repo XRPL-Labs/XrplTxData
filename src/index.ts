@@ -65,6 +65,7 @@ type TxDataOptions = {
   EndpointTimeoutMs?: number
   OverallTimeoutMs?: number
   AllowNoFullHistory?: boolean
+  NativeAsset?: string
 }
 
 export class TxData {
@@ -82,6 +83,7 @@ export class TxData {
   private ConnectionAndQueryTimeoutMs: number = 1250
   private LookupTimeoutMs: number = 10000
   private AllowNoFullHistory: boolean = false
+  private NativeAsset: string = 'XRP'
 
   constructor (endpoints?: Array<string>, options?: TxDataOptions) {
     this.EventBus = new EventEmitter()
@@ -127,6 +129,9 @@ export class TxData {
       }
       if (typeof options.AllowNoFullHistory === 'boolean') {
         this.AllowNoFullHistory = options.AllowNoFullHistory
+      }
+      if (typeof options.NativeAsset === 'string') {
+        this.NativeAsset = options.NativeAsset.trim().toUpperCase()
       }
     }
 
@@ -214,7 +219,7 @@ export class TxData {
 
           const result = this.FormatResult(customEventResult ? customEventResult : eventResult)
           const balanceChanges = typeof (result as TxResult).meta !== 'undefined'
-            ? parseBalanceChanges((result as TxResult).meta)
+            ? parseBalanceChanges((result as TxResult).meta, this.NativeAsset)
             : {}
 
           resolve({

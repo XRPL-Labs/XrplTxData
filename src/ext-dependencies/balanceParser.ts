@@ -53,7 +53,7 @@ const parseValue = (value: ValueObject | string | number) => {
   return new BigNumber(v)
 }
 
-const parseXRPQuantity = (node: any, valueParser: any) => {
+const parseXRPQuantity = (node: any, valueParser: any, nativeAsset = 'XRP') => {
   const value = valueParser(node)
 
   if (value === null) {
@@ -64,7 +64,7 @@ const parseXRPQuantity = (node: any, valueParser: any) => {
     address: node.finalFields.Account || node.newFields.Account,
     balance: {
       counterparty: '',
-      currency: 'XRP',
+      currency: nativeAsset.toUpperCase(),
       value: dropsToXRP(value).toString()
     }
   }
@@ -101,10 +101,10 @@ const parseTrustlineQuantity = (node: any, valueParser: any) => {
   return [result, flipTrustlinePerspective(result)]
 }
 
-const parseQuantities = (metadata: AnyJson, valueParser: any) => {
+const parseQuantities = (metadata: AnyJson, valueParser: any, nativeAsset = 'XRP') => {
   const values = normalizeNodes(metadata).map((node: any) => {
     if (node.entryType === 'AccountRoot') {
-      return [parseXRPQuantity(node, valueParser)]
+      return [parseXRPQuantity(node, valueParser, nativeAsset.toUpperCase())]
     } else if (node.entryType === 'RippleState') {
       return parseTrustlineQuantity(node, valueParser)
     }
@@ -113,7 +113,7 @@ const parseQuantities = (metadata: AnyJson, valueParser: any) => {
   return groupByAddress(compact(flatten(values)))
 }
 
-export const parseBalanceChanges = (metadata: AnyJson): FormattedBalanceChanges => {
+export const parseBalanceChanges = (metadata: AnyJson, nativeAsset = 'XRP'): FormattedBalanceChanges => {
   const quantities = parseQuantities(metadata, (node: any) => {
     let value = null
     if (node.newFields.Balance) {
@@ -122,7 +122,7 @@ export const parseBalanceChanges = (metadata: AnyJson): FormattedBalanceChanges 
       value = parseValue(node.finalFields.Balance).minus(parseValue(node.previousFields.Balance))
     }
     return value === null ? null : value.isZero() ? null : value
-  })
+  }, nativeAsset.toUpperCase())
   const formatted = Object.keys(quantities).reduce((a: FormattedBalanceChanges, b: string): FormattedBalanceChanges => {
     const formattedQuantities = quantities[b].map(q => {
       return Object.assign(q, {
@@ -130,9 +130,9 @@ export const parseBalanceChanges = (metadata: AnyJson): FormattedBalanceChanges 
           value: q.counterparty !== '' && q.value.match(/e/)
            ? String(xrplValueToNft(q.value))
            : q.value,
-          currency: q.currency === 'XRP' && q.counterparty === ''
-            ? 'XRP'
-            : currencyCodeFormat(q.currency)
+          currency: q.currency === nativeAsset.toUpperCase() && q.counterparty === ''
+            ? nativeAsset.toUpperCase()
+            : currencyCodeFormat(q.currency, undefined, nativeAsset.toUpperCase())
         }
       })
     })
