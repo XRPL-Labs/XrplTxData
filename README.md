@@ -2,7 +2,7 @@
 
 ### `xrpl-txdata`: Fetch XRPL transaction data (auto failover)
 
-# ⚠️ WARNING! PLEASE UPDATE TO THE LATEST VERSION (1.2.3) - previous versions have a bug resulting in sometimes returning UNVALIDATED TRANSACTIONS (without metadata, and may not be included in the closed ledger).
+**⚠️ WARNING! Versions before 1.2.3 are vulnerable to returning unvalidated transactions. Please update!**
 
 ---
 
